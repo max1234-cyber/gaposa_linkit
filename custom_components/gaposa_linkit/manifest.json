@@ -1,0 +1,10 @@
+{
+  "domain": "gaposa_linkit",
+  "name": "Gaposa LinkIt Hub",
+  "codeowners": ["max1234-cyber"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "",
+  "iot_class": "local_push",
+  "version": "1.0.0"
+}
