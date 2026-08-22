@@ -1,0 +1,31 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure Gaposa LinkIt Hub",
+        "description": "Enter the connection details for your Gaposa LinkIt Hub",
+        "data": {
+          "host": "Hub IP Address or Hostname",
+          "port": "Port",
+          "channels": "Channels"
+        }
+      },
+      "init": {
+        "title": "Reconfigure Gaposa LinkIt Hub",
+        "description": "Update the connection settings for your Gaposa LinkIt Hub",
+        "data": {
+          "host": "Hub IP Address or Hostname",
+          "port": "Port",
+          "channels": "Channels"
+        }
+      }
+    }
+  },
+  "entity": {
+    "cover": {
+      "gaposa_shade": {
+        "name": "Gaposa Shade"
+      }
+    }
+  }
+}
