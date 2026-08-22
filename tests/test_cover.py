@@ -135,8 +135,6 @@ async def test_cover_channel_bank_mapping():
     from custom_components.gaposa_linkit.cover import GaposaCover
 
     mock_hub = AsyncMock()
-    mock_config_entry = MagicMock()
-    mock_config_entry.entry_id = "test"
 
     # Channels 1-8 should be bank 0x00
     cover1 = GaposaCover(mock_hub, "test", 1, 0x00, 1)
