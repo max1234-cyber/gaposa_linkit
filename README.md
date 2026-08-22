@@ -1,6 +1,6 @@
 # Gaposa LinkIt Hub
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+[![hacs-custom](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://hacs.xyz/docs/faq/custom_repositories)
 
 An unofficial Home Assistant integration for the **Gaposa LinkIt Hub** that enables local control of motorized roller shades via IP-based serial communication. Control your shades directly without relying on cloud-based server communication.
 
@@ -29,14 +29,17 @@ This integration requires:
 
 ## Installation
 
-### Via HACS (Recommended)
+### Via HACS (Custom Repository)
+
+This integration is available as a **custom repository** in HACS:
 
 1. Open HACS in Home Assistant
 2. Go to **Integrations**
-3. Click the three-dot menu and select **Custom repositories**
-4. Add this repository URL: `https://github.com/max1234-cyber/gaposa_linkit`
-5. Search for "Gaposa LinkIt Hub" and install
-6. Restart Home Assistant
+3. Click the three-dot menu (⋮) and select **Custom repositories**
+4. Paste this URL: `https://github.com/max1234-cyber/gaposa_linkit`
+5. Select **Integration** as the category
+6. Search for "Gaposa LinkIt Hub" and install
+7. Restart Home Assistant
 
 ### Manual Installation
 
@@ -45,6 +48,39 @@ This integration requires:
 3. Restart Home Assistant
 
 ## Configuration
+
+### Testing Your IP-to-Serial Adapter
+
+Before configuring the integration, verify your IP-to-Serial adapter (e.g., Global Caché ITach IP2SL) is working correctly by testing it directly from your Home Assistant host or another machine with network access.
+
+#### Prerequisites
+- `netcat` (nc) command-line utility installed
+- Network connectivity to your adapter's IP address and port
+
+#### Test Commands
+
+Replace `local_ip_address_to_ip2sl_adapter` with your adapter's IP and `port` with your configured port (default: 4999).
+
+**Open cover on channel 2:**
+```bash
+(printf '\x67\x00\x02\xdd\xb8'; sleep 5) | nc -v -w 5 local_ip_address_to_ip2sl_adapter port
+```
+
+**Close cover on channel 2:**
+```bash
+(printf '\x67\x00\x02\xee\x8b'; sleep 5) | nc -v -w 5 local_ip_address_to_ip2sl_adapter port
+```
+
+**Example with IP 192.168.1.100 and port 4999:**
+```bash
+# Open
+(printf '\x67\x00\x02\xdd\xb8'; sleep 5) | nc -v -w 5 192.168.1.100 4999
+
+# Close
+(printf '\x67\x00\x02\xee\x8b'; sleep 5) | nc -v -w 5 192.168.1.100 4999
+```
+
+If these commands work and your shades respond, your adapter is correctly configured and ready for use with this integration.
 
 ### Getting Your Shade Channel Numbers
 
@@ -121,10 +157,11 @@ Ensure your IP-to-Serial adapter is properly configured according to the [Gaposa
 2. Check the adapter's IP address and port are correct
 3. Ensure your Home Assistant can reach the adapter's IP address
 4. Verify the channel numbers match those shown in the Gaposa Rollapp
+5. Test connectivity using the netcat commands shown in the [Testing Your IP-to-Serial Adapter](#testing-your-ip-to-serial-adapter) section
 
 ### Connection timeouts
 
-1. Check network connectivity between Home Assistant and the serial adapter
+1. Check network connectivity between Home Assistant and the serial adapter using ping
 2. Verify firewall rules allow communication on your configured port
 3. Restart the adapter and try reconfiguring the integration
 
