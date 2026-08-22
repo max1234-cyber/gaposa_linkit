@@ -4,7 +4,7 @@
   "codeowners": ["max1234-cyber"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "",
+  "documentation": "https://github.com/max1234-cyber/gaposa_linkit/blob/main/README.md",
   "iot_class": "local_push",
   "version": "1.0.0"
 }
