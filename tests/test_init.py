@@ -8,6 +8,9 @@ from homeassistant.const import CONF_HOST
 from homeassistant.const import CONF_PORT
 from homeassistant.core import HomeAssistant
 
+from custom_components.gaposa_linkit.const import CONF_CHANNELS
+from custom_components.gaposa_linkit.const import CONF_ENABLE_SET_POSITION
+from custom_components.gaposa_linkit.const import CONF_TRAVEL_TIMES
 from custom_components.gaposa_linkit.const import DOMAIN
 
 
@@ -22,7 +25,7 @@ def mock_config_entry():
         "channels": ["1", "2", "3"],
     }
     entry.async_on_unload = MagicMock(return_value=MagicMock())
-    entry.add_update_listener = AsyncMock()
+    entry.add_update_listener = MagicMock(return_value=MagicMock())
     return entry
 
 
@@ -30,8 +33,6 @@ def mock_config_entry():
 async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry):
     """Test async setup entry."""
     from custom_components.gaposa_linkit import async_setup_entry
-
-    mock_config_entry.add_update_listener = AsyncMock()
 
     with patch("custom_components.gaposa_linkit.GaposaLinkItHub") as mock_hub_class:
         mock_hub = AsyncMock()
@@ -47,6 +48,7 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry):
         hass.config_entries.async_forward_entry_setups.assert_called_once_with(
             mock_config_entry, ["cover"]
         )
+        assert hass.data[DOMAIN][mock_config_entry.entry_id]["hub"] == mock_hub
 
 
 @pytest.mark.asyncio
@@ -101,6 +103,43 @@ async def test_update_listener(hass: HomeAssistant, mock_config_entry):
 
 
 @pytest.mark.asyncio
+async def test_update_listener_dispatches_cover_setting_changes(
+    hass: HomeAssistant, mock_config_entry
+):
+    """Test cover-only setting changes update entities without a reload."""
+    from custom_components.gaposa_linkit import update_listener
+
+    hass.data[DOMAIN] = {
+        mock_config_entry.entry_id: {
+            "hub": "mock_hub",
+            "entry_data": dict(mock_config_entry.data),
+        }
+    }
+    hass.config_entries.async_reload = AsyncMock(return_value=True)
+
+    updated_entry = MagicMock()
+    updated_entry.entry_id = mock_config_entry.entry_id
+    updated_entry.data = {
+        CONF_HOST: "192.168.1.100",
+        CONF_PORT: 4999,
+        CONF_CHANNELS: ["1", "2", "3"],
+        CONF_ENABLE_SET_POSITION: False,
+        CONF_TRAVEL_TIMES: {"1": 30, "2": 45, "3": 60},
+    }
+
+    with patch("custom_components.gaposa_linkit.async_dispatcher_send") as mock_dispatch:
+        await update_listener(hass, updated_entry)
+
+    hass.config_entries.async_reload.assert_not_called()
+    mock_dispatch.assert_called_once_with(
+        hass,
+        "gaposa_linkit_test_entry_id_config_updated",
+        updated_entry.data,
+    )
+    assert hass.data[DOMAIN][mock_config_entry.entry_id]["entry_data"] == updated_entry.data
+
+
+@pytest.mark.asyncio
 async def test_setup_entry_stores_hub_in_hass_data(hass: HomeAssistant, mock_config_entry):
     """Test that setup stores hub in hass.data."""
     from custom_components.gaposa_linkit import async_setup_entry
@@ -115,13 +154,11 @@ async def test_setup_entry_stores_hub_in_hass_data(hass: HomeAssistant, mock_con
 
         # Mock async_forward_entry_setups
         hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=True)
-        mock_config_entry.add_update_listener = AsyncMock()
-
         await async_setup_entry(hass, mock_config_entry)
 
         # Verify hub is stored
         assert mock_config_entry.entry_id in hass.data[DOMAIN]
-        assert hass.data[DOMAIN][mock_config_entry.entry_id] == mock_hub
+        assert hass.data[DOMAIN][mock_config_entry.entry_id]["hub"] == mock_hub
 
 
 @pytest.mark.asyncio
@@ -136,7 +173,8 @@ async def test_setup_entry_with_custom_port(hass: HomeAssistant):
         CONF_PORT: 5555,
         "channels": ["1"],
     }
-    mock_entry.add_update_listener = AsyncMock()
+    mock_entry.add_update_listener = MagicMock(return_value=MagicMock())
+    mock_entry.async_on_unload = MagicMock(return_value=MagicMock())
 
     with patch("custom_components.gaposa_linkit.GaposaLinkItHub") as mock_hub_class:
         mock_hub = AsyncMock()

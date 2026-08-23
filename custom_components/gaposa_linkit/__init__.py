@@ -5,20 +5,28 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST
 from homeassistant.const import CONF_PORT
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 
+from .const import CONF_CHANNELS
+from .const import DEFAULT_PORT
 from .const import DOMAIN
+from .const import get_config_update_signal
 
 _LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     # Safely get host and port from config entry data
     host = entry.data[CONF_HOST]
-    port = entry.data.get(CONF_PORT, 4999)
+    port = entry.data.get(CONF_PORT, DEFAULT_PORT)
 
     hub = GaposaLinkItHub(host, port)
-    hass.data[DOMAIN][entry.entry_id] = hub
+    hass.data[DOMAIN][entry.entry_id] = {
+        "hub": hub,
+        "entry_data": dict(entry.data),
+    }
 
     await hass.config_entries.async_forward_entry_setups(entry, ["cover"])
 
@@ -33,9 +41,25 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
 
+
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
     """Handle options update when the user changes settings via the UI."""
-    await hass.config_entries.async_reload(entry.entry_id)
+    runtime_data = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    previous_data = runtime_data.get("entry_data", {}) if runtime_data else {}
+
+    if (
+        previous_data.get(CONF_HOST) != entry.data.get(CONF_HOST)
+        or previous_data.get(CONF_PORT, DEFAULT_PORT) != entry.data.get(CONF_PORT, DEFAULT_PORT)
+        or set(previous_data.get(CONF_CHANNELS, [])) != set(entry.data.get(CONF_CHANNELS, []))
+    ):
+        await hass.config_entries.async_reload(entry.entry_id)
+        return
+
+    if runtime_data is not None:
+        runtime_data["entry_data"] = dict(entry.data)
+
+    async_dispatcher_send(hass, get_config_update_signal(entry.entry_id), entry.data)
+
 
 class GaposaLinkItHub:
     def __init__(self, host: str, port: int):
