@@ -7,10 +7,10 @@ import pytest
 from homeassistant.const import CONF_HOST
 from homeassistant.const import CONF_PORT
 
+from custom_components.gaposa_linkit import HUB_REPLY_SIZE
 from custom_components.gaposa_linkit import GaposaLinkItHub
 from custom_components.gaposa_linkit import GaposaLinkItIPHub
 from custom_components.gaposa_linkit import GaposaLinkItUSBHub
-from custom_components.gaposa_linkit import HUB_REPLY_SIZE
 from custom_components.gaposa_linkit import create_hub
 from custom_components.gaposa_linkit.const import CMD_DOWN
 from custom_components.gaposa_linkit.const import CMD_UP
@@ -229,7 +229,11 @@ async def test_hub_send_command_timeout_logs_partial_reply(caplog):
         result = await hub.send_command(0, 1, CMD_UP)
         assert result == "#6"
         assert "partial reply" in caplog.text
-        assert mock_reader.read.await_args_list[0].args == (HUB_REPLY_SIZE,)
+        assert [call.args for call in mock_reader.read.await_args_list] == [
+            (HUB_REPLY_SIZE,),
+            (HUB_REPLY_SIZE,),
+            (HUB_REPLY_SIZE - len(b"#6"),),
+        ]
 
 
 @pytest.mark.asyncio
