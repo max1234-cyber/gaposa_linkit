@@ -34,9 +34,9 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry):
     """Test async setup entry."""
     from custom_components.gaposa_linkit import async_setup_entry
 
-    with patch("custom_components.gaposa_linkit.GaposaLinkItHub") as mock_hub_class:
+    with patch("custom_components.gaposa_linkit.create_hub") as mock_create_hub:
         mock_hub = AsyncMock()
-        mock_hub_class.return_value = mock_hub
+        mock_create_hub.return_value = mock_hub
 
         # Mock async_forward_entry_setups
         hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=True)
@@ -44,7 +44,7 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry):
         result = await async_setup_entry(hass, mock_config_entry)
 
         assert result is True
-        mock_hub_class.assert_called_once_with("192.168.1.100", 4999)
+        mock_create_hub.assert_called_once_with(mock_config_entry.data)
         hass.config_entries.async_forward_entry_setups.assert_called_once_with(
             mock_config_entry, ["cover", "number", "switch"]
         )
@@ -144,9 +144,9 @@ async def test_setup_entry_stores_hub_in_hass_data(hass: HomeAssistant, mock_con
     """Test that setup stores hub in hass.data."""
     from custom_components.gaposa_linkit import async_setup_entry
 
-    with patch("custom_components.gaposa_linkit.GaposaLinkItHub") as mock_hub_class:
+    with patch("custom_components.gaposa_linkit.create_hub") as mock_create_hub:
         mock_hub = AsyncMock()
-        mock_hub_class.return_value = mock_hub
+        mock_create_hub.return_value = mock_hub
 
         # Initialize hass.data
         if DOMAIN not in hass.data:
@@ -176,9 +176,9 @@ async def test_setup_entry_with_custom_port(hass: HomeAssistant):
     mock_entry.add_update_listener = MagicMock(return_value=MagicMock())
     mock_entry.async_on_unload = MagicMock(return_value=MagicMock())
 
-    with patch("custom_components.gaposa_linkit.GaposaLinkItHub") as mock_hub_class:
+    with patch("custom_components.gaposa_linkit.create_hub") as mock_create_hub:
         mock_hub = AsyncMock()
-        mock_hub_class.return_value = mock_hub
+        mock_create_hub.return_value = mock_hub
 
         if DOMAIN not in hass.data:
             hass.data[DOMAIN] = {}
@@ -187,5 +187,5 @@ async def test_setup_entry_with_custom_port(hass: HomeAssistant):
 
         await async_setup_entry(hass, mock_entry)
 
-        # Verify correct host and port were passed
-        mock_hub_class.assert_called_once_with("192.168.1.50", 5555)
+        # Verify create_hub was called with the entry data
+        mock_create_hub.assert_called_once_with(mock_entry.data)

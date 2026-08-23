@@ -3,19 +3,53 @@
     "step": {
       "user": {
         "title": "Configure Gaposa LinkIt Hub",
-        "description": "Enter the connection details for your Gaposa LinkIt Hub",
+        "description": "Choose how your Gaposa LinkIt Hub is connected to Home Assistant",
+        "data": {
+          "connection_type": "Connection Type"
+        }
+      },
+      "ip": {
+        "title": "IP Connection Settings",
+        "description": "Enter the network details for your IP-to-Serial adapter (e.g. Global Caché iTach IP2SL)",
         "data": {
           "host": "Hub IP Address or Hostname",
           "port": "Port",
           "channels": "Channels"
         }
       },
+      "usb": {
+        "title": "USB Connection Settings",
+        "description": "Enter the serial port path for your USB-to-Serial adapter (e.g. /dev/ttyUSB0 on Linux or COM3 on Windows)",
+        "data": {
+          "serial_port": "Serial Port",
+          "channels": "Channels"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
       "init": {
         "title": "Reconfigure Gaposa LinkIt Hub",
-        "description": "Update the connection settings for your Gaposa LinkIt Hub",
+        "description": "Choose the connection type for your Gaposa LinkIt Hub",
+        "data": {
+          "connection_type": "Connection Type"
+        }
+      },
+      "ip": {
+        "title": "Reconfigure IP Connection",
+        "description": "Update the network details for your IP-to-Serial adapter",
         "data": {
           "host": "Hub IP Address or Hostname",
           "port": "Port",
+          "channels": "Channels"
+        }
+      },
+      "usb": {
+        "title": "Reconfigure USB Connection",
+        "description": "Update the serial port path for your USB-to-Serial adapter",
+        "data": {
+          "serial_port": "Serial Port",
           "channels": "Channels"
         }
       }
