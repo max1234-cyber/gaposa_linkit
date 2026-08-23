@@ -54,6 +54,7 @@ class GaposaCover(CoverEntity):
 
         # Create a variable to hold the raw reply
         self._last_hub_reply = None
+        self._attr_extra_state_attributes = {"last_hub_reply": self._last_hub_reply}
 
     async def async_added_to_hass(self):
         """Run when entity about to be added to hass."""
@@ -65,20 +66,13 @@ class GaposaCover(CoverEntity):
             self._attr_is_closed = True
             self.async_write_ha_state()
 
-    @property
-    def extra_state_attributes(self):
-        """Return the entity-specific state attributes."""
-        # Expose the variable to Home Assistant
-        return {
-            "last_hub_reply": self._last_hub_reply
-        }
-
     async def async_open_cover(self, **kwargs):
         """Open the cover and optimistically assume it succeeded."""
         reply = await self._hub.send_command(self._bank, self._bank_channel, CMD_UP)
         self._attr_is_closed = False
         if reply:
             self._last_hub_reply = reply
+            self._attr_extra_state_attributes["last_hub_reply"] = reply
         # Tell Home Assistant the state/attributes have changed so the UI updates
         self.async_write_ha_state()
 
@@ -88,6 +82,7 @@ class GaposaCover(CoverEntity):
         self._attr_is_closed = True
         if reply:
             self._last_hub_reply = reply
+            self._attr_extra_state_attributes["last_hub_reply"] = reply
         # Tell Home Assistant the state/attributes have changed so the UI updates
         self.async_write_ha_state()
 
@@ -98,5 +93,6 @@ class GaposaCover(CoverEntity):
         self._attr_is_closed = False
         if reply:
             self._last_hub_reply = reply
+            self._attr_extra_state_attributes["last_hub_reply"] = reply
         # Tell Home Assistant the state/attributes have changed so the UI updates
         self.async_write_ha_state()

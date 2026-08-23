@@ -25,7 +25,7 @@ class GaposaLinkItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data=user_input,
             )
 
-        channel_options = [
+        channel_options: list[selector.SelectOptionDict] = [
             {"value": str(i), "label": f"Channel {i}"} for i in range(1, 25)
         ]
 
@@ -86,7 +86,7 @@ class GaposaLinkItOptionsFlowHandler(config_entries.OptionsFlow):
         current_port = self.config_entry.data.get(CONF_PORT, DEFAULT_PORT)
         current_channels = self.config_entry.data.get("channels", [])
 
-        channel_options = [
+        channel_options: list[selector.SelectOptionDict] = [
             {"value": str(i), "label": f"Channel {i}"} for i in range(1, 25)
         ]
 
