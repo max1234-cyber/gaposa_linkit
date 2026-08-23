@@ -104,7 +104,7 @@ Before configuring the integration, you need to identify which channels correspo
    - **USB** – for a USB-to-Serial adapter directly connected to your Home Assistant host
 4. Enter the connection-specific details:
    - *IP mode*: **Hub IP Address or Hostname** and **Port** (default: `4999`)
-   - *USB mode*: **Serial Port** path (e.g. `/dev/ttyUSB0` on Linux, `COM3` on Windows) and **Baud Rate** (default: `9600`)
+   - *USB mode*: **Serial Port** path (e.g. `/dev/ttyUSB0` on Linux, `COM3` on Windows)
 5. Select the **Channels** for your shades (1–24)
 6. Click **Submit**
 

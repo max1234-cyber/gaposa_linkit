@@ -6,7 +6,6 @@ from homeassistant.const import CONF_HOST
 from homeassistant.const import CONF_PORT
 from homeassistant.core import HomeAssistant
 
-from custom_components.gaposa_linkit.const import CONF_BAUD_RATE
 from custom_components.gaposa_linkit.const import CONF_CHANNELS
 from custom_components.gaposa_linkit.const import CONF_CONNECTION_TYPE
 from custom_components.gaposa_linkit.const import CONF_SERIAL_PORT
@@ -65,7 +64,7 @@ async def test_config_flow_user_step_selects_usb(hass: HomeAssistant):
 
     assert result["type"] == "form"
     assert result["step_id"] == "usb"
-    assert _schema_keys(result) == {CONF_SERIAL_PORT, CONF_BAUD_RATE, CONF_CHANNELS}
+    assert _schema_keys(result) == {CONF_SERIAL_PORT, CONF_CHANNELS}
 
 
 # ---------------------------------------------------------------------------
@@ -135,7 +134,6 @@ async def test_config_flow_usb_step_with_input(hass: HomeAssistant):
 
     user_input = {
         CONF_SERIAL_PORT: "/dev/ttyUSB0",
-        CONF_BAUD_RATE: 9600,
         CONF_CHANNELS: ["1", "2"],
     }
 
@@ -146,29 +144,22 @@ async def test_config_flow_usb_step_with_input(hass: HomeAssistant):
     assert result["data"] == {
         CONF_CONNECTION_TYPE: CONNECTION_TYPE_USB,
         CONF_SERIAL_PORT: "/dev/ttyUSB0",
-        CONF_BAUD_RATE: 9600,
         CONF_CHANNELS: ["1", "2"],
     }
 
 
 @pytest.mark.asyncio
-async def test_config_flow_usb_step_with_default_baud_rate(hass: HomeAssistant):
-    """Test the usb step uses the default baud rate when not supplied."""
+async def test_config_flow_usb_step_no_baud_rate_field(hass: HomeAssistant):
+    """Test the usb step form does not expose a baud rate field (it is fixed internally)."""
     from custom_components.gaposa_linkit.config_flow import GaposaLinkItConfigFlow
 
     flow = GaposaLinkItConfigFlow()
     flow.hass = hass
 
-    user_input = {
-        CONF_SERIAL_PORT: "/dev/ttyUSB0",
-        CONF_CHANNELS: [],
-    }
+    result = await flow.async_step_usb()
 
-    result = await flow.async_step_usb(user_input=user_input)
-
-    assert result["type"] == "create_entry"
-    assert result["data"][CONF_CONNECTION_TYPE] == CONNECTION_TYPE_USB
-    assert result["data"][CONF_BAUD_RATE] == 9600
+    assert result["type"] == "form"
+    assert "baud_rate" not in _schema_keys(result)
 
 
 # ---------------------------------------------------------------------------
@@ -237,7 +228,6 @@ async def test_options_flow_init_selects_usb(hass: HomeAssistant):
         {
             CONF_CONNECTION_TYPE: CONNECTION_TYPE_USB,
             CONF_SERIAL_PORT: "/dev/ttyUSB0",
-            CONF_BAUD_RATE: 9600,
             CONF_CHANNELS: ["1"],
         },
     )
@@ -289,14 +279,12 @@ async def test_options_flow_usb_with_input(hass: HomeAssistant):
         {
             CONF_CONNECTION_TYPE: CONNECTION_TYPE_USB,
             CONF_SERIAL_PORT: "/dev/ttyUSB0",
-            CONF_BAUD_RATE: 9600,
             CONF_CHANNELS: ["1"],
         },
     )
 
     user_input = {
         CONF_SERIAL_PORT: "/dev/ttyUSB1",
-        CONF_BAUD_RATE: 19200,
         CONF_CHANNELS: ["1", "2"],
     }
 
@@ -308,7 +296,6 @@ async def test_options_flow_usb_with_input(hass: HomeAssistant):
         data={
             CONF_CONNECTION_TYPE: CONNECTION_TYPE_USB,
             CONF_SERIAL_PORT: "/dev/ttyUSB1",
-            CONF_BAUD_RATE: 19200,
             CONF_CHANNELS: ["1", "2"],
         },
     )

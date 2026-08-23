@@ -22,7 +22,6 @@
         "description": "Enter the serial port path for your USB-to-Serial adapter (e.g. /dev/ttyUSB0 on Linux or COM3 on Windows)",
         "data": {
           "serial_port": "Serial Port",
-          "baud_rate": "Baud Rate",
           "channels": "Channels"
         }
       }
@@ -51,7 +50,6 @@
         "description": "Update the serial port path for your USB-to-Serial adapter",
         "data": {
           "serial_port": "Serial Port",
-          "baud_rate": "Baud Rate",
           "channels": "Channels"
         }
       }

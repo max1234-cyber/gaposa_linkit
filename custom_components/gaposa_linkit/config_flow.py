@@ -8,13 +8,11 @@ from homeassistant.const import CONF_PORT
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 
-from .const import CONF_BAUD_RATE
 from .const import CONF_CHANNELS
 from .const import CONF_CONNECTION_TYPE
 from .const import CONF_SERIAL_PORT
 from .const import CONNECTION_TYPE_IP
 from .const import CONNECTION_TYPE_USB
-from .const import DEFAULT_BAUD_RATE
 from .const import DEFAULT_PORT
 from .const import DOMAIN
 
@@ -38,7 +36,6 @@ def _normalize_config_data(
 
     if connection_type == CONNECTION_TYPE_USB:
         data[CONF_SERIAL_PORT] = user_input[CONF_SERIAL_PORT]
-        data[CONF_BAUD_RATE] = int(user_input.get(CONF_BAUD_RATE, DEFAULT_BAUD_RATE))
     else:
         data[CONF_HOST] = user_input[CONF_HOST]
         data[CONF_PORT] = int(user_input.get(CONF_PORT, DEFAULT_PORT))
@@ -105,7 +102,6 @@ def _build_ip_schema(
 def _build_usb_schema(
     *,
     serial_port: str = "",
-    baud_rate: int = DEFAULT_BAUD_RATE,
     channels: list[str] | None = None,
 ) -> vol.Schema:
     channels = channels or []
@@ -113,13 +109,6 @@ def _build_usb_schema(
         {
             vol.Required(CONF_SERIAL_PORT, default=serial_port): selector.TextSelector(
                 selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-            ),
-            vol.Optional(CONF_BAUD_RATE, default=baud_rate): selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=1200,
-                    max=115200,
-                    mode=selector.NumberSelectorMode.BOX,
-                )
             ),
             vol.Optional(CONF_CHANNELS, default=channels): selector.SelectSelector(
                 selector.SelectSelectorConfig(
@@ -187,8 +176,6 @@ class GaposaLinkItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="usb",
             data_schema=_build_usb_schema(),
         )
-
-    @staticmethod
     @callback
     def async_get_options_flow(config_entry):
         """Attach the options flow handler to enable the Configure button."""
@@ -251,14 +238,12 @@ class GaposaLinkItOptionsFlowHandler(config_entries.OptionsFlow):
             return self.async_create_entry(title="", data={})
 
         current_serial_port = self.config_entry.data.get(CONF_SERIAL_PORT, "")
-        current_baud_rate = self.config_entry.data.get(CONF_BAUD_RATE, DEFAULT_BAUD_RATE)
         current_channels = self.config_entry.data.get(CONF_CHANNELS, [])
 
         return self.async_show_form(
             step_id="usb",
             data_schema=_build_usb_schema(
                 serial_port=current_serial_port,
-                baud_rate=current_baud_rate,
                 channels=current_channels,
             ),
         )

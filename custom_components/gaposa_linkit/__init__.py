@@ -9,7 +9,6 @@ from homeassistant.const import CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
-from .const import CONF_BAUD_RATE
 from .const import CONF_CHANNELS
 from .const import CONF_CONNECTION_TYPE
 from .const import CONF_SERIAL_PORT
@@ -28,7 +27,7 @@ def create_hub(data: dict) -> "GaposaLinkItHub":
     if data.get(CONF_CONNECTION_TYPE) == CONNECTION_TYPE_USB:
         return GaposaLinkItUSBHub(
             serial_port=data[CONF_SERIAL_PORT],
-            baud_rate=data.get(CONF_BAUD_RATE, DEFAULT_BAUD_RATE),
+            baud_rate=DEFAULT_BAUD_RATE,
         )
     return GaposaLinkItIPHub(
         host=data[CONF_HOST],
@@ -62,7 +61,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 def _connection_changed(previous: dict, current: dict) -> bool:
     """Return True if any connection-relevant field has changed."""
-    for key in (CONF_CONNECTION_TYPE, CONF_HOST, CONF_SERIAL_PORT, CONF_BAUD_RATE):
+    for key in (CONF_CONNECTION_TYPE, CONF_HOST, CONF_SERIAL_PORT):
         if previous.get(key) != current.get(key):
             return True
     if previous.get(CONF_PORT, DEFAULT_PORT) != current.get(CONF_PORT, DEFAULT_PORT):
