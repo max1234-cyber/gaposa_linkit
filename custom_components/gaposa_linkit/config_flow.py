@@ -140,8 +140,6 @@ class GaposaLinkItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 class GaposaLinkItOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle re-configuration via the 'Configure' button on the integration card."""
 
-    # FIX: Completely removed the __init__ method since config_entry is now a native property
-
     async def async_step_init(self, user_input=None):
         """Manage configuration updates."""
         if user_input is not None:

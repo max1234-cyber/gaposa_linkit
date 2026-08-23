@@ -145,7 +145,10 @@ async def test_cover_background_timer_updates_during_motion(mock_hub):
         cover.async_write_ha_state = MagicMock()
 
         await cover.async_open_cover()
+        motion_task = cover._motion_task
         await _drain_background_tasks()
+        if motion_task is not None:
+            await motion_task
 
     assert sleep_calls == [1.0, 1.0]
     assert cover.current_cover_position == 100
@@ -171,7 +174,10 @@ async def test_cover_set_position_auto_stops_when_enabled(mock_hub):
         cover.async_write_ha_state = MagicMock()
 
         await cover.async_set_cover_position(position=50)
+        motion_task = cover._motion_task
         await _drain_background_tasks()
+        if motion_task is not None:
+            await motion_task
 
     mock_hub.send_command.assert_has_calls(
         [

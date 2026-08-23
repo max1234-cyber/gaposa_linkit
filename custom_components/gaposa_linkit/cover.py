@@ -281,7 +281,8 @@ class GaposaCover(CoverEntity):
 
                 self._sync_state()
                 self.async_write_ha_state()
-                await sleep(min(1.0, (remaining_percent / 100) * self._travel_time))
+                remaining_seconds = (remaining_percent / 100) * self._travel_time
+                await sleep(min(1.0, max(0.1, remaining_seconds)))
         except CancelledError:
             raise
 
@@ -289,6 +290,10 @@ class GaposaCover(CoverEntity):
         """Finalize motion when the target position is reached."""
         target_position = self._target_position
         send_stop_at_target = self._send_stop_at_target
+
+        if send_stop_at_target:
+            reply = await self._hub.send_command(self._bank, self._bank_channel, CMD_STOP)
+            self._store_reply(reply)
 
         self._motion_task = None
         self._position = target_position
@@ -298,7 +303,3 @@ class GaposaCover(CoverEntity):
         self._target_position = target_position
         self._send_stop_at_target = False
         self._sync_state()
-
-        if send_stop_at_target:
-            reply = await self._hub.send_command(self._bank, self._bank_channel, CMD_STOP)
-            self._store_reply(reply)
