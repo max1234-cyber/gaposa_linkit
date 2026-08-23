@@ -12,6 +12,10 @@ from homeassistant.core import callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .channel import channel_bank_address
+from .channel import channel_device_info
+from .channel import channel_enable_set_position
+from .channel import normalize_travel_time
 from .const import CMD_DOWN
 from .const import CMD_STOP
 from .const import CMD_UP
@@ -27,21 +31,8 @@ MOTION_CLOSING = "closing"
 MOTION_STOPPED = "stopped"
 
 
-def _normalize_travel_time(value: int | float) -> int:
-    return max(1, int(value))
-
-
 def _clamp_position(position: float) -> float:
     return max(0.0, min(100.0, position))
-
-
-def _channel_enable_set_position(
-    config_value: dict[str, bool] | bool,
-    channel_key: str,
-) -> bool:
-    if isinstance(config_value, dict):
-        return bool(config_value.get(channel_key, True))
-    return bool(config_value)
 
 
 async def async_setup_entry(
@@ -58,22 +49,17 @@ async def async_setup_entry(
     entities = []
     for ch_str in enabled_channels:
         channel_id = int(ch_str)
-        if channel_id <= 8:
-            bank, bank_ch = 0x00, channel_id
-        elif channel_id <= 16:
-            bank, bank_ch = 0x01, channel_id - 8
-        else:
-            bank, bank_ch = 0x02, channel_id - 16
+        bank, bank_ch = channel_bank_address(channel_id)
 
         entities.append(
             GaposaCover(
                 hub,
-                entry.entry_id,
+                entry,
                 channel_id,
                 bank,
                 bank_ch,
                 travel_time=travel_times.get(ch_str, DEFAULT_TRAVEL_TIME),
-                enable_set_position=_channel_enable_set_position(
+                enable_set_position=channel_enable_set_position(
                     enable_set_position_config,
                     ch_str,
                 ),
@@ -90,7 +76,7 @@ class GaposaCover(CoverEntity):
     def __init__(
         self,
         hub,
-        entry_id,
+        config_entry: ConfigEntry,
         channel_id,
         bank,
         bank_channel,
@@ -101,14 +87,15 @@ class GaposaCover(CoverEntity):
     ):
         """Initialize the cover."""
         self._hub = hub
-        self._entry_id = entry_id
+        self._config_entry = config_entry
+        self._entry_id = config_entry.entry_id
         self._channel_id = channel_id
         self._channel_key = str(channel_id)
         self._bank = bank
         self._bank_channel = bank_channel
-        self._travel_time = _normalize_travel_time(travel_time)
+        self._travel_time = normalize_travel_time(travel_time)
         self._enable_set_position = enable_set_position
-        self._config_signal = config_signal or get_config_update_signal(entry_id)
+        self._config_signal = config_signal or get_config_update_signal(self._entry_id)
         self._position = 0.0
         self._motion_state = MOTION_STOPPED
         self._motion_start_time: float | None = None
@@ -116,8 +103,10 @@ class GaposaCover(CoverEntity):
         self._target_position = 0.0
         self._send_stop_at_target = False
         self._motion_task: Task | None = None
-        self._attr_unique_id = f"{entry_id}_channel_{channel_id}"
-        self._attr_name = f"Gaposa Shade Channel {channel_id}"
+        self._attr_unique_id = f"{self._entry_id}_channel_{channel_id}"
+        self._attr_has_entity_name = True
+        self._attr_name = "Shade"
+        self._attr_device_info = channel_device_info(self._entry_id, channel_id)
         self._attr_is_closed = None
         self._attr_is_opening = False
         self._attr_is_closing = False
@@ -204,13 +193,13 @@ class GaposaCover(CoverEntity):
             self._motion_start_position = current_position
             self._motion_start_time = monotonic()
 
-        self._travel_time = _normalize_travel_time(
+        self._travel_time = normalize_travel_time(
             entry_data.get(CONF_TRAVEL_TIMES, {}).get(
                 self._channel_key,
                 DEFAULT_TRAVEL_TIME,
             )
         )
-        self._enable_set_position = _channel_enable_set_position(
+        self._enable_set_position = channel_enable_set_position(
             entry_data.get(CONF_ENABLE_SET_POSITION, True),
             self._channel_key,
         )

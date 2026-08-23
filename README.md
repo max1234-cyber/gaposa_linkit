@@ -116,6 +116,7 @@ Once configured, your shades will appear as **Cover** entities in Home Assistant
 - **Open** the shade: Full-up position
 - **Close** the shade: Full-down position
 - **Stop** the shade: Pause at current position
+- **Tune each channel** from its device page using configuration entities for travel time and custom-position support
 
 Use these in automations, scripts, scenes, and the Home Assistant UI just like any other cover entity.
 

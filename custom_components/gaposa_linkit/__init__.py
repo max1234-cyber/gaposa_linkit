@@ -13,6 +13,7 @@ from .const import DOMAIN
 from .const import get_config_update_signal
 
 _LOGGER = logging.getLogger(__name__)
+PLATFORMS = ["cover", "number", "switch"]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -28,7 +29,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "entry_data": dict(entry.data),
     }
 
-    await hass.config_entries.async_forward_entry_setups(entry, ["cover"])
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     # Register the update listener for the Options Flow (Configure button)
     entry.async_on_unload(entry.add_update_listener(update_listener))
@@ -36,7 +37,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, ["cover"])
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
