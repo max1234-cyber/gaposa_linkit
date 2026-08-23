@@ -4,12 +4,11 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from homeassistant.core import HomeAssistant
 
 # Add the custom_components directory to the path
 custom_components_path = Path(__file__).parent.parent / "custom_components"
 sys.path.insert(0, str(custom_components_path))
-
-from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture

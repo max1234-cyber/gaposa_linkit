@@ -1,5 +1,4 @@
 """Tests for constants and configuration."""
-import pytest
 from custom_components.gaposa_linkit.const import (
     DOMAIN,
     DEFAULT_PORT,
