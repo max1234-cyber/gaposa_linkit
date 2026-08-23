@@ -32,7 +32,6 @@ async def test_config_flow_user_step(hass: HomeAssistant):
         CONF_HOST,
         CONF_PORT,
         CONF_CHANNELS,
-        CONF_ENABLE_SET_POSITION,
     }
 
 
@@ -48,7 +47,6 @@ async def test_config_flow_user_step_with_input(hass: HomeAssistant):
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
         CONF_CHANNELS: ["1", "2", "3"],
-        CONF_ENABLE_SET_POSITION: False,
     }
 
     result = await flow.async_step_user(user_input=user_input)
@@ -59,7 +57,11 @@ async def test_config_flow_user_step_with_input(hass: HomeAssistant):
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
         CONF_CHANNELS: ["1", "2", "3"],
-        CONF_ENABLE_SET_POSITION: False,
+        CONF_ENABLE_SET_POSITION: {
+            "1": True,
+            "2": True,
+            "3": True,
+        },
         CONF_TRAVEL_TIMES: {
             "1": DEFAULT_TRAVEL_TIME,
             "2": DEFAULT_TRAVEL_TIME,
@@ -86,7 +88,7 @@ async def test_config_flow_user_step_with_default_port(hass: HomeAssistant):
     assert result["type"] == "create_entry"
     assert result["data"][CONF_HOST] == "192.168.1.100"
     assert result["data"][CONF_PORT] == 4999
-    assert result["data"][CONF_ENABLE_SET_POSITION] is True
+    assert result["data"][CONF_ENABLE_SET_POSITION] == {}
     assert result["data"][CONF_TRAVEL_TIMES] == {}
 
 
@@ -118,9 +120,8 @@ async def test_options_flow_init(hass: HomeAssistant):
         CONF_HOST,
         CONF_PORT,
         CONF_CHANNELS,
-        CONF_ENABLE_SET_POSITION,
-        "travel_time_1",
-        "travel_time_2",
+        "channel_1",
+        "channel_2",
     }
 
 
@@ -135,7 +136,7 @@ async def test_options_flow_init_with_input(hass: HomeAssistant):
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
         CONF_CHANNELS: ["1", "2"],
-        CONF_ENABLE_SET_POSITION: True,
+        CONF_ENABLE_SET_POSITION: {"1": True, "2": True},
         CONF_TRAVEL_TIMES: {"1": 60, "2": 60},
     }
     hass.config_entries.async_get_known_entry = MagicMock(return_value=config_entry)
@@ -148,9 +149,14 @@ async def test_options_flow_init_with_input(hass: HomeAssistant):
         CONF_HOST: "192.168.1.101",
         CONF_PORT: 5000,
         CONF_CHANNELS: ["1", "2", "3"],
-        CONF_ENABLE_SET_POSITION: False,
-        "travel_time_1": 30,
-        "travel_time_2": 45,
+        "channel_1": {
+            "allow_set_position": False,
+            "travel_time": 30,
+        },
+        "channel_2": {
+            "allow_set_position": False,
+            "travel_time": 45,
+        },
     }
 
     result = await flow.async_step_init(user_input=user_input)
@@ -162,7 +168,7 @@ async def test_options_flow_init_with_input(hass: HomeAssistant):
             CONF_HOST: "192.168.1.101",
             CONF_PORT: 5000,
             CONF_CHANNELS: ["1", "2", "3"],
-            CONF_ENABLE_SET_POSITION: False,
+            CONF_ENABLE_SET_POSITION: {"1": False, "2": False, "3": True},
             CONF_TRAVEL_TIMES: {"1": 30, "2": 45, "3": DEFAULT_TRAVEL_TIME},
         },
     )

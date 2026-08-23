@@ -35,6 +35,15 @@ def _clamp_position(position: float) -> float:
     return max(0.0, min(100.0, position))
 
 
+def _channel_enable_set_position(
+    config_value: dict[str, bool] | bool,
+    channel_key: str,
+) -> bool:
+    if isinstance(config_value, dict):
+        return bool(config_value.get(channel_key, True))
+    return bool(config_value)
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ):
@@ -44,7 +53,7 @@ async def async_setup_entry(
 
     enabled_channels = entry.data.get(CONF_CHANNELS, [])
     travel_times = entry.data.get(CONF_TRAVEL_TIMES, {})
-    enable_set_position = entry.data.get(CONF_ENABLE_SET_POSITION, True)
+    enable_set_position_config = entry.data.get(CONF_ENABLE_SET_POSITION, True)
 
     entities = []
     for ch_str in enabled_channels:
@@ -64,7 +73,10 @@ async def async_setup_entry(
                 bank,
                 bank_ch,
                 travel_time=travel_times.get(ch_str, DEFAULT_TRAVEL_TIME),
-                enable_set_position=enable_set_position,
+                enable_set_position=_channel_enable_set_position(
+                    enable_set_position_config,
+                    ch_str,
+                ),
                 config_signal=get_config_update_signal(entry.entry_id),
             )
         )
@@ -198,7 +210,10 @@ class GaposaCover(CoverEntity):
                 DEFAULT_TRAVEL_TIME,
             )
         )
-        self._enable_set_position = entry_data.get(CONF_ENABLE_SET_POSITION, True)
+        self._enable_set_position = _channel_enable_set_position(
+            entry_data.get(CONF_ENABLE_SET_POSITION, True),
+            self._channel_key,
+        )
         self._update_supported_features()
         self._sync_state()
         self.async_write_ha_state()
