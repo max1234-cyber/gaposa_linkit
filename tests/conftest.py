@@ -13,9 +13,9 @@ sys.path.insert(0, str(custom_components_path))
 
 
 @pytest.fixture
-def hass():
+async def hass(tmp_path: Path):
     """Provide a Home Assistant instance for testing."""
-    hass = HomeAssistant()
+    hass = HomeAssistant(str(tmp_path))
     hass.data = {}
     hass.config_entries = MagicMock()
     hass.config_entries.async_forward_entry_setups = AsyncMock(return_value=True)

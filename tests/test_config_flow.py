@@ -98,7 +98,7 @@ async def test_options_flow_init(hass: HomeAssistant):
         CONF_PORT: 4999,
         "channels": ["1", "2"],
     }
-    flow.config_entry = mock_config_entry
+    flow._config_entry = mock_config_entry
 
     result = await flow.async_step_init()
     assert result["type"] == "form"
@@ -120,7 +120,7 @@ async def test_options_flow_init_with_input(hass: HomeAssistant):
         CONF_PORT: 4999,
         "channels": ["1", "2"],
     }
-    flow.config_entry = mock_config_entry
+    flow._config_entry = mock_config_entry
 
     # Mock the async_update_entry method
     hass.config_entries.async_update_entry = MagicMock()
