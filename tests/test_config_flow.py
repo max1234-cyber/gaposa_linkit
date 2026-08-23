@@ -96,6 +96,7 @@ async def test_options_flow_init(hass: HomeAssistant):
     from custom_components.gaposa_linkit.config_flow import GaposaLinkItOptionsFlowHandler
 
     config_entry = MagicMock()
+    config_entry.entry_id = "test-entry-id"
     config_entry.data = {
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
@@ -103,7 +104,9 @@ async def test_options_flow_init(hass: HomeAssistant):
         CONF_ENABLE_SET_POSITION: True,
         CONF_TRAVEL_TIMES: {"1": 30, "2": 45},
     }
+    hass.config_entries.async_get_known_entry = MagicMock(return_value=config_entry)
     flow = GaposaLinkItOptionsFlowHandler()
+    flow.handler = config_entry.entry_id
     flow._config_entry = config_entry
     flow.hass = hass
 
@@ -127,6 +130,7 @@ async def test_options_flow_init_with_input(hass: HomeAssistant):
     from custom_components.gaposa_linkit.config_flow import GaposaLinkItOptionsFlowHandler
 
     config_entry = MagicMock()
+    config_entry.entry_id = "test-entry-id"
     config_entry.data = {
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
@@ -134,7 +138,9 @@ async def test_options_flow_init_with_input(hass: HomeAssistant):
         CONF_ENABLE_SET_POSITION: True,
         CONF_TRAVEL_TIMES: {"1": 60, "2": 60},
     }
+    hass.config_entries.async_get_known_entry = MagicMock(return_value=config_entry)
     flow = GaposaLinkItOptionsFlowHandler()
+    flow.handler = config_entry.entry_id
     flow._config_entry = config_entry
     flow.hass = hass
 
