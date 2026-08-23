@@ -132,7 +132,7 @@ class GaposaLinkItHub(ABC):
     async def _read_reply(self, reader: asyncio.StreamReader, *, source: str) -> str | None:
         """Read the reply and log partial bytes when the initial read times out."""
         try:
-            data = await asyncio.wait_for(reader.read(HUB_REPLY_SIZE), timeout=3.0)
+            data = await asyncio.wait_for(reader.readexactly(HUB_REPLY_SIZE), timeout=3.0)
         except asyncio.TimeoutError:
             partial_data = await self._read_available_bytes(reader)
             if partial_data:
@@ -146,6 +146,20 @@ class GaposaLinkItHub(ABC):
                 )
                 return partial_reply
             _LOGGER.warning("Timed out waiting for reply from %s (no response within 3s).", source)
+            return None
+        except asyncio.IncompleteReadError as err:
+            if err.partial:
+                partial_reply = err.partial.decode("utf-8", errors="ignore").strip()
+                _LOGGER.warning(
+                    "%s closed the connection with a partial reply (%s/%s bytes): hex=%s, decoded=%r",
+                    source,
+                    len(err.partial),
+                    HUB_REPLY_SIZE,
+                    err.partial.hex(),
+                    partial_reply,
+                )
+                return partial_reply
+            _LOGGER.warning("%s closed the connection without returning a reply.", source)
             return None
 
         if not data:
