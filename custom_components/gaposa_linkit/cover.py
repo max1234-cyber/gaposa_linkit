@@ -55,7 +55,6 @@ async def async_setup_entry(
             GaposaCover(
                 hub,
                 entry,
-                entry.entry_id,
                 channel_id,
                 bank,
                 bank_ch,
@@ -78,7 +77,6 @@ class GaposaCover(CoverEntity):
         self,
         hub,
         config_entry: ConfigEntry,
-        entry_id,
         channel_id,
         bank,
         bank_channel,
@@ -90,14 +88,14 @@ class GaposaCover(CoverEntity):
         """Initialize the cover."""
         self._hub = hub
         self._config_entry = config_entry
-        self._entry_id = entry_id
+        self._entry_id = config_entry.entry_id
         self._channel_id = channel_id
         self._channel_key = str(channel_id)
         self._bank = bank
         self._bank_channel = bank_channel
         self._travel_time = normalize_travel_time(travel_time)
         self._enable_set_position = enable_set_position
-        self._config_signal = config_signal or get_config_update_signal(entry_id)
+        self._config_signal = config_signal or get_config_update_signal(self._entry_id)
         self._position = 0.0
         self._motion_state = MOTION_STOPPED
         self._motion_start_time: float | None = None
@@ -105,10 +103,10 @@ class GaposaCover(CoverEntity):
         self._target_position = 0.0
         self._send_stop_at_target = False
         self._motion_task: Task | None = None
-        self._attr_unique_id = f"{entry_id}_channel_{channel_id}"
+        self._attr_unique_id = f"{self._entry_id}_channel_{channel_id}"
         self._attr_has_entity_name = True
         self._attr_name = "Shade"
-        self._attr_device_info = channel_device_info(entry_id, channel_id)
+        self._attr_device_info = channel_device_info(self._entry_id, channel_id)
         self._attr_is_closed = None
         self._attr_is_opening = False
         self._attr_is_closing = False

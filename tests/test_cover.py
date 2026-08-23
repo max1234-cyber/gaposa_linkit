@@ -37,7 +37,6 @@ def _make_cover(
     return GaposaCover(
         mock_hub,
         MagicMock(entry_id="test_entry_id", data={}),
-        "test_entry_id",
         1,
         0x00,
         1,

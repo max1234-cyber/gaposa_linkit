@@ -66,4 +66,5 @@ async def test_allow_set_position_switch_reacts_to_dispatcher_updates(
         {CONF_ENABLE_SET_POSITION: {"1": False}},
     )
 
-    assert entity.is_on is False
+    assert entity._attr_is_on is False
+    entity.async_write_ha_state.assert_called()
