@@ -123,7 +123,7 @@ async def test_update_listener_dispatches_cover_setting_changes(
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
         CONF_CHANNELS: ["1", "2", "3"],
-        CONF_ENABLE_SET_POSITION: False,
+        CONF_ENABLE_SET_POSITION: {"1": False, "2": True, "3": True},
         CONF_TRAVEL_TIMES: {"1": 30, "2": 45, "3": 60},
     }
 

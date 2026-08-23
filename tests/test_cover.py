@@ -282,7 +282,7 @@ async def test_cover_config_update_changes_travel_time_and_features(
         hass,
         get_config_update_signal("test_entry_id"),
         {
-            CONF_ENABLE_SET_POSITION: False,
+            CONF_ENABLE_SET_POSITION: {"1": False},
             CONF_TRAVEL_TIMES: {"1": 120},
         },
     )

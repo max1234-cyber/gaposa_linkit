@@ -17,7 +17,11 @@ from .const import DOMAIN
 
 
 def _travel_time_field(channel: str) -> str:
-    return f"travel_time_{channel}"
+    return f"channel_{channel}_travel_time"
+
+
+def _enable_set_position_field(channel: str) -> str:
+    return f"channel_{channel}_allow_set_position"
 
 
 def _normalize_travel_time(value) -> int:
@@ -31,6 +35,15 @@ def _normalize_config_data(
     current_data = current_data or {}
     channels = [str(channel) for channel in user_input.get(CONF_CHANNELS, [])]
     current_travel_times = current_data.get(CONF_TRAVEL_TIMES, {})
+    current_enable_set_position = current_data.get(
+        CONF_ENABLE_SET_POSITION,
+        True,
+    )
+    default_enable_set_position = (
+        bool(current_enable_set_position)
+        if not isinstance(current_enable_set_position, dict)
+        else True
+    )
 
     travel_times = {
         channel: _normalize_travel_time(
@@ -41,12 +54,23 @@ def _normalize_config_data(
         )
         for channel in channels
     }
+    enable_set_position = {
+        channel: bool(
+            user_input.get(
+                _enable_set_position_field(channel),
+                current_enable_set_position.get(channel, default_enable_set_position)
+                if isinstance(current_enable_set_position, dict)
+                else default_enable_set_position,
+            )
+        )
+        for channel in channels
+    }
 
     return {
         CONF_HOST: user_input[CONF_HOST],
         CONF_PORT: int(user_input.get(CONF_PORT, DEFAULT_PORT)),
         CONF_CHANNELS: channels,
-        CONF_ENABLE_SET_POSITION: user_input.get(CONF_ENABLE_SET_POSITION, True),
+        CONF_ENABLE_SET_POSITION: enable_set_position,
         CONF_TRAVEL_TIMES: travel_times,
     }
 
@@ -56,11 +80,16 @@ def _build_schema(
     host: str = "",
     port: int = DEFAULT_PORT,
     channels: list[str] | None = None,
-    enable_set_position: bool = True,
+    enable_set_position: dict[str, bool] | bool | None = None,
     travel_times: dict[str, int] | None = None,
 ) -> vol.Schema:
     channels = channels or []
     travel_times = travel_times or {}
+    enable_set_position = (
+        {}
+        if enable_set_position is None
+        else enable_set_position
+    )
 
     channel_options: list[selector.SelectOptionDict] = [
         {"value": str(i), "label": f"Channel {i}"} for i in range(1, 25)
@@ -84,13 +113,20 @@ def _build_schema(
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
-        vol.Optional(
-            CONF_ENABLE_SET_POSITION,
-            default=enable_set_position,
-        ): selector.BooleanSelector(),
     }
 
     for channel in channels:
+        enable_default = (
+            bool(enable_set_position.get(channel, True))
+            if isinstance(enable_set_position, dict)
+            else bool(enable_set_position)
+        )
+        schema_fields[
+            vol.Optional(
+                _enable_set_position_field(channel),
+                default=enable_default,
+            )
+        ] = selector.BooleanSelector()
         schema_fields[
             vol.Optional(
                 _travel_time_field(channel),
