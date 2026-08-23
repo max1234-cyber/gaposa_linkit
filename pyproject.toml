@@ -83,7 +83,7 @@ lint.ignore = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["custom_components"]
-split-on-comma = true
+split-on-trailing-comma = true
 force-single-line = true
 
 [tool.ruff.lint.flake8-pytest-style]

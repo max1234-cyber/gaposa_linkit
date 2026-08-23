@@ -1,11 +1,16 @@
 """Tests for the Gaposa cover platform."""
-import pytest
-from unittest.mock import MagicMock, AsyncMock
-from homeassistant.const import CONF_HOST, CONF_PORT
-from homeassistant.core import HomeAssistant
-from homeassistant.components.cover import CoverEntityFeature
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
 
-from custom_components.gaposa_linkit.const import CMD_UP, CMD_DOWN, CMD_STOP
+import pytest
+from homeassistant.components.cover import CoverEntityFeature
+from homeassistant.const import CONF_HOST
+from homeassistant.const import CONF_PORT
+from homeassistant.core import HomeAssistant
+
+from custom_components.gaposa_linkit.const import CMD_DOWN
+from custom_components.gaposa_linkit.const import CMD_STOP
+from custom_components.gaposa_linkit.const import CMD_UP
 
 
 @pytest.fixture
@@ -35,7 +40,7 @@ async def test_cover_initialization(hass: HomeAssistant, mock_hub, mock_config_e
     from custom_components.gaposa_linkit.cover import GaposaCover
 
     cover = GaposaCover(mock_hub, mock_config_entry.entry_id, 1, 0x00, 1)
-    
+
     assert cover._hub == mock_hub
     assert cover._bank == 0x00
     assert cover._bank_channel == 1
@@ -50,7 +55,7 @@ async def test_cover_supported_features(hass: HomeAssistant, mock_hub, mock_conf
     from custom_components.gaposa_linkit.cover import GaposaCover
 
     cover = GaposaCover(mock_hub, mock_config_entry.entry_id, 1, 0x00, 1)
-    
+
     assert cover._attr_supported_features == (
         CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE | CoverEntityFeature.STOP
     )
@@ -65,7 +70,7 @@ async def test_cover_open(hass: HomeAssistant, mock_hub, mock_config_entry):
     cover.async_write_ha_state = MagicMock()
 
     await cover.async_open_cover()
-    
+
     mock_hub.send_command.assert_called_once_with(0x00, 1, CMD_UP)
     assert cover._attr_is_closed is False
     cover.async_write_ha_state.assert_called_once()
@@ -80,7 +85,7 @@ async def test_cover_close(hass: HomeAssistant, mock_hub, mock_config_entry):
     cover.async_write_ha_state = MagicMock()
 
     await cover.async_close_cover()
-    
+
     mock_hub.send_command.assert_called_once_with(0x00, 1, CMD_DOWN)
     assert cover._attr_is_closed is True
     cover.async_write_ha_state.assert_called_once()
@@ -95,7 +100,7 @@ async def test_cover_stop(hass: HomeAssistant, mock_hub, mock_config_entry):
     cover.async_write_ha_state = MagicMock()
 
     await cover.async_stop_cover()
-    
+
     mock_hub.send_command.assert_called_once_with(0x00, 1, CMD_STOP)
     assert cover._attr_is_closed is False
     cover.async_write_ha_state.assert_called_once()
@@ -108,7 +113,7 @@ async def test_cover_extra_state_attributes(hass: HomeAssistant, mock_hub, mock_
 
     cover = GaposaCover(mock_hub, mock_config_entry.entry_id, 1, 0x00, 1)
     cover._last_hub_reply = "Test Reply"
-    
+
     attributes = cover.extra_state_attributes
     assert attributes["last_hub_reply"] == "Test Reply"
 
@@ -120,12 +125,12 @@ async def test_cover_open_with_reply(hass: HomeAssistant, mock_config_entry):
 
     mock_hub = AsyncMock()
     mock_hub.send_command = AsyncMock(return_value="SUCCESS")
-    
+
     cover = GaposaCover(mock_hub, mock_config_entry.entry_id, 1, 0x00, 1)
     cover.async_write_ha_state = MagicMock()
 
     await cover.async_open_cover()
-    
+
     assert cover._last_hub_reply == "SUCCESS"
 
 
@@ -163,7 +168,7 @@ async def test_cover_added_to_hass(hass: HomeAssistant, mock_hub, mock_config_en
 
     # Simulate added to hass
     await cover.async_added_to_hass()
-    
+
     # Should default to closed state
     assert cover._attr_is_closed is True
     cover.async_write_ha_state.assert_called_once()

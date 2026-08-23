@@ -1,10 +1,13 @@
 """Tests for Gaposa LinkIt Hub communication."""
 import asyncio
+from unittest.mock import AsyncMock
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, AsyncMock
 
 from custom_components.gaposa_linkit import GaposaLinkItHub
-from custom_components.gaposa_linkit.const import CMD_UP, CMD_DOWN
+from custom_components.gaposa_linkit.const import CMD_DOWN
+from custom_components.gaposa_linkit.const import CMD_UP
 
 
 @pytest.mark.asyncio
@@ -43,11 +46,11 @@ async def test_hub_send_command_checksum():
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
         await hub.send_command(0x00, 0x01, 0xdd)
-        
+
         # Verify the payload was sent
         call_args = mock_writer.write.call_args
         payload = call_args[0][0]
-        
+
         # Payload should be: b0=0x67, b1=0x00, b2=0x01, b3=0xdd, b4=checksum
         assert payload[0] == 0x67
         assert payload[1] == 0x00
@@ -114,7 +117,7 @@ async def test_hub_send_command_unicode_response():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.read = AsyncMock(return_value="Response: OK".encode("utf-8"))
+    mock_reader.read = AsyncMock(return_value=b"Response: OK")
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
         result = await hub.send_command(0, 1, CMD_UP)
@@ -144,6 +147,6 @@ async def test_hub_concurrent_commands():
             hub.send_command(0, 1, CMD_UP),
             hub.send_command(0, 2, CMD_DOWN),
         )
-        
+
         assert len(results) == 2
         assert all(r == "OK" for r in results)

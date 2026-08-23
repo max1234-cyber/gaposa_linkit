@@ -1,15 +1,13 @@
 """Tests for constants and configuration."""
-from custom_components.gaposa_linkit.const import (
-    DOMAIN,
-    DEFAULT_PORT,
-    CONF_HOST,
-    CONF_PORT,
-    CMD_UP,
-    CMD_DOWN,
-    CMD_STOP,
-    CMD_PAIR,
-    CMD_UNPAIR,
-)
+from custom_components.gaposa_linkit.const import CMD_DOWN
+from custom_components.gaposa_linkit.const import CMD_PAIR
+from custom_components.gaposa_linkit.const import CMD_STOP
+from custom_components.gaposa_linkit.const import CMD_UNPAIR
+from custom_components.gaposa_linkit.const import CMD_UP
+from custom_components.gaposa_linkit.const import CONF_HOST
+from custom_components.gaposa_linkit.const import CONF_PORT
+from custom_components.gaposa_linkit.const import DEFAULT_PORT
+from custom_components.gaposa_linkit.const import DOMAIN
 
 
 def test_domain_constant():

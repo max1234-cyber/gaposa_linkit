@@ -1,11 +1,12 @@
 import voluptuous as vol
-
 from homeassistant import config_entries
-from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.const import CONF_HOST
+from homeassistant.const import CONF_PORT
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 
-from .const import DEFAULT_PORT, DOMAIN
+from .const import DEFAULT_PORT
+from .const import DOMAIN
 
 
 class GaposaLinkItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
