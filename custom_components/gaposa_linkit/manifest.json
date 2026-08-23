@@ -1,7 +1,7 @@
 {
   "domain": "gaposa_linkit",
   "name": "Gaposa LinkIt Hub",
-  "codeowners": ["max1234-cyber"],
+  "codeowners": ["@max1234-cyber"],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/max1234-cyber/gaposa_linkit/blob/main/README.md",
