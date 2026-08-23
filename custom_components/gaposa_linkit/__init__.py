@@ -162,10 +162,6 @@ class GaposaLinkItHub(ABC):
             _LOGGER.warning("%s closed the connection without returning a reply.", source)
             return None
 
-        if not data:
-            _LOGGER.warning("%s closed the connection without returning a reply.", source)
-            return None
-
         reply_str = data.decode("utf-8", errors="ignore").strip()
         _LOGGER.info("Received reply from Gaposa hub: %s", reply_str)
         return reply_str
