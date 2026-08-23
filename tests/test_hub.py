@@ -7,6 +7,7 @@ import pytest
 from homeassistant.const import CONF_HOST
 from homeassistant.const import CONF_PORT
 
+from custom_components.gaposa_linkit import HUB_REPLY_SIZE
 from custom_components.gaposa_linkit import GaposaLinkItHub
 from custom_components.gaposa_linkit import GaposaLinkItIPHub
 from custom_components.gaposa_linkit import GaposaLinkItUSBHub
@@ -40,13 +41,14 @@ async def test_hub_send_command_success():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.read = AsyncMock(return_value=b"OK")
+    mock_reader.readexactly = AsyncMock(return_value=b"\xc3\xa9!")
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
         result = await hub.send_command(0, 1, CMD_UP)
-        assert result == "OK"
+        assert result == "é!"
         mock_writer.write.assert_called_once()
         mock_writer.close.assert_called_once()
+        mock_reader.readexactly.assert_called_once_with(HUB_REPLY_SIZE)
 
 
 @pytest.mark.asyncio
@@ -56,7 +58,7 @@ async def test_hub_send_command_checksum():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.read = AsyncMock(return_value=b"OK")
+    mock_reader.readexactly = AsyncMock(return_value=b"OK")
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
         await hub.send_command(0x00, 0x01, 0xdd)
@@ -92,6 +94,7 @@ async def test_hub_send_command_timeout_read():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
+    mock_reader.readexactly = AsyncMock(side_effect=asyncio.TimeoutError())
     mock_reader.read = AsyncMock(side_effect=asyncio.TimeoutError())
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
@@ -117,7 +120,7 @@ async def test_hub_send_command_empty_response():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.read = AsyncMock(return_value=b"")
+    mock_reader.readexactly = AsyncMock(side_effect=asyncio.IncompleteReadError(b"", HUB_REPLY_SIZE))
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
         result = await hub.send_command(0, 1, CMD_UP)
@@ -131,11 +134,11 @@ async def test_hub_send_command_unicode_response():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.read = AsyncMock(return_value=b"Response: OK")
+    mock_reader.readexactly = AsyncMock(return_value=b"OK")
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
         result = await hub.send_command(0, 1, CMD_UP)
-        assert result == "Response: OK"
+        assert result == "OK"
 
 
 @pytest.mark.asyncio
@@ -145,7 +148,7 @@ async def test_hub_concurrent_commands():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.read = AsyncMock(return_value=b"OK")
+    mock_reader.readexactly = AsyncMock(return_value=b"OK")
 
     call_count = 0
 
@@ -187,7 +190,7 @@ async def test_usb_hub_send_command_success():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.read = AsyncMock(return_value=b"OK")
+    mock_reader.readexactly = AsyncMock(return_value=b"OK")
 
     mock_serial_asyncio = AsyncMock()
     mock_serial_asyncio.open_serial_connection = AsyncMock(
@@ -202,8 +205,37 @@ async def test_usb_hub_send_command_success():
         assert result == "OK"
         mock_writer.write.assert_called_once()
         mock_writer.close.assert_called_once()
+        mock_reader.readexactly.assert_called_once_with(HUB_REPLY_SIZE)
+        mock_serial_asyncio.open_serial_connection.assert_called_once_with(
+            url="/dev/ttyUSB0",
+            baudrate=DEFAULT_BAUD_RATE,
+            bytesize=8,
+            parity="N",
+            stopbits=1,
+        )
     finally:
         del sys.modules["serial_asyncio"]
+
+
+@pytest.mark.asyncio
+async def test_hub_send_command_timeout_logs_partial_reply(caplog):
+    """When timeout happens, any late partial bytes are logged and returned."""
+    hub = GaposaLinkItHub("192.168.1.100", 4999)
+
+    mock_reader = AsyncMock()
+    mock_writer = AsyncMock()
+    mock_reader.readexactly = AsyncMock(side_effect=asyncio.TimeoutError())
+    mock_reader.read = AsyncMock(side_effect=[b"#6", asyncio.TimeoutError()])
+
+    with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
+        result = await hub.send_command(0, 1, CMD_UP)
+        assert result == "#6"
+        assert "partial reply" in caplog.text
+        mock_reader.readexactly.assert_called_once_with(HUB_REPLY_SIZE)
+        assert [call.args for call in mock_reader.read.await_args_list] == [
+            (HUB_REPLY_SIZE,),
+            (HUB_REPLY_SIZE - len(b"#6"),),
+        ]
 
 
 @pytest.mark.asyncio
@@ -213,7 +245,7 @@ async def test_usb_hub_send_command_checksum():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.read = AsyncMock(return_value=b"OK")
+    mock_reader.readexactly = AsyncMock(return_value=b"OK")
 
     mock_serial_asyncio = AsyncMock()
     mock_serial_asyncio.open_serial_connection = AsyncMock(
@@ -293,6 +325,3 @@ def test_create_hub_defaults_to_ip():
     """create_hub defaults to IP when connection type is absent."""
     hub = create_hub({CONF_HOST: "192.168.1.100"})
     assert isinstance(hub, GaposaLinkItIPHub)
-
-
-
