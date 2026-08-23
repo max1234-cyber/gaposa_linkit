@@ -6,5 +6,6 @@
   "dependencies": [],
   "documentation": "https://github.com/max1234-cyber/gaposa_linkit/blob/main/README.md",
   "iot_class": "local_push",
+  "issue_tracker": "https://github.com/max1234-cyber/gaposa_linkit/issues",
   "version": "1.0.2"
 }
