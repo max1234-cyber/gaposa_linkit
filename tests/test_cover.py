@@ -112,7 +112,7 @@ async def test_cover_extra_state_attributes(hass: HomeAssistant, mock_hub, mock_
     from custom_components.gaposa_linkit.cover import GaposaCover
 
     cover = GaposaCover(mock_hub, mock_config_entry.entry_id, 1, 0x00, 1)
-    cover._last_hub_reply = "Test Reply"
+    cover._attr_extra_state_attributes = {"last_hub_reply": "Test Reply"}
 
     attributes = cover.extra_state_attributes
     assert attributes["last_hub_reply"] == "Test Reply"
@@ -131,7 +131,7 @@ async def test_cover_open_with_reply(hass: HomeAssistant, mock_config_entry):
 
     await cover.async_open_cover()
 
-    assert cover._last_hub_reply == "SUCCESS"
+    assert cover._attr_extra_state_attributes["last_hub_reply"] == "SUCCESS"
 
 
 @pytest.mark.asyncio
