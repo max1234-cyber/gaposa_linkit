@@ -54,7 +54,6 @@ class GaposaCover(CoverEntity):
 
         # Create a variable to hold the raw reply
         self._last_hub_reply = None
-        self._attr_extra_state_attributes = {"last_hub_reply": self._last_hub_reply}
 
     @property
     def extra_state_attributes(self):
@@ -77,7 +76,6 @@ class GaposaCover(CoverEntity):
         self._attr_is_closed = False
         if reply:
             self._last_hub_reply = reply
-            self._attr_extra_state_attributes = {"last_hub_reply": reply}
         # Tell Home Assistant the state/attributes have changed so the UI updates
         self.async_write_ha_state()
 
@@ -87,7 +85,6 @@ class GaposaCover(CoverEntity):
         self._attr_is_closed = True
         if reply:
             self._last_hub_reply = reply
-            self._attr_extra_state_attributes = {"last_hub_reply": reply}
         # Tell Home Assistant the state/attributes have changed so the UI updates
         self.async_write_ha_state()
 
@@ -98,6 +95,5 @@ class GaposaCover(CoverEntity):
         self._attr_is_closed = False
         if reply:
             self._last_hub_reply = reply
-            self._attr_extra_state_attributes = {"last_hub_reply": reply}
         # Tell Home Assistant the state/attributes have changed so the UI updates
         self.async_write_ha_state()
