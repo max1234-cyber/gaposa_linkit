@@ -46,7 +46,7 @@ async def test_async_setup_entry(hass: HomeAssistant, mock_config_entry):
         assert result is True
         mock_hub_class.assert_called_once_with("192.168.1.100", 4999)
         hass.config_entries.async_forward_entry_setups.assert_called_once_with(
-            mock_config_entry, ["cover"]
+            mock_config_entry, ["cover", "number", "switch"]
         )
         assert hass.data[DOMAIN][mock_config_entry.entry_id]["hub"] == mock_hub
 
@@ -66,7 +66,7 @@ async def test_async_unload_entry(hass: HomeAssistant, mock_config_entry):
 
     assert result is True
     hass.config_entries.async_unload_platforms.assert_called_once_with(
-        mock_config_entry, ["cover"]
+        mock_config_entry, ["cover", "number", "switch"]
     )
     assert mock_config_entry.entry_id not in hass.data[DOMAIN]
 

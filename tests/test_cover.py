@@ -36,6 +36,7 @@ def _make_cover(
 
     return GaposaCover(
         mock_hub,
+        MagicMock(entry_id="test_entry_id", data={}),
         "test_entry_id",
         1,
         0x00,
@@ -60,9 +61,10 @@ async def test_cover_initialization(mock_hub):
     assert cover._bank == 0x00
     assert cover._bank_channel == 1
     assert cover._attr_unique_id == "test_entry_id_channel_1"
-    assert cover._attr_name == "Gaposa Shade Channel 1"
+    assert cover._attr_name == "Shade"
     assert cover._attr_is_closed is None
     assert cover.current_cover_position == 0
+    assert cover.device_info["name"] == "Channel 1"
 
 
 @pytest.mark.asyncio
