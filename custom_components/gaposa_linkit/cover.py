@@ -22,6 +22,10 @@ from .const import DEFAULT_TRAVEL_TIME
 from .const import DOMAIN
 from .const import get_config_update_signal
 
+MOTION_OPENING = "opening"
+MOTION_CLOSING = "closing"
+MOTION_STOPPED = "stopped"
+
 
 def _normalize_travel_time(value: int | float) -> int:
     return max(1, int(value))
@@ -94,7 +98,7 @@ class GaposaCover(CoverEntity):
         self._enable_set_position = enable_set_position
         self._config_signal = config_signal or get_config_update_signal(entry_id)
         self._position = 0.0
-        self._motion_direction: str | None = None
+        self._motion_state = MOTION_STOPPED
         self._motion_start_time: float | None = None
         self._motion_start_position = 0.0
         self._target_position = 0.0
@@ -104,8 +108,6 @@ class GaposaCover(CoverEntity):
         self._attr_name = f"Gaposa Shade Channel {channel_id}"
         self._attr_is_closed = None
         self._attr_current_cover_position = 0
-        self._attr_is_opening = False
-        self._attr_is_closing = False
         self._attr_extra_state_attributes: dict = {"last_hub_reply": None}
         self._update_supported_features()
 
@@ -132,14 +134,14 @@ class GaposaCover(CoverEntity):
         """Open the cover and optimistically assume it succeeded."""
         reply = await self._hub.send_command(self._bank, self._bank_channel, CMD_UP)
         self._store_reply(reply)
-        await self._start_motion("opening", 100.0)
+        await self._start_motion(MOTION_OPENING, 100.0)
         self.async_write_ha_state()
 
     async def async_close_cover(self, **kwargs):
         """Close the cover and optimistically assume it succeeded."""
         reply = await self._hub.send_command(self._bank, self._bank_channel, CMD_DOWN)
         self._store_reply(reply)
-        await self._start_motion("closing", 0.0)
+        await self._start_motion(MOTION_CLOSING, 0.0)
         self.async_write_ha_state()
 
     async def async_stop_cover(self, **kwargs):
@@ -151,23 +153,31 @@ class GaposaCover(CoverEntity):
 
     async def async_set_cover_position(self, **kwargs):
         """Move the cover to a requested position."""
-        if not self._enable_set_position:
-            return
-
-        target_position = _clamp_position(float(kwargs["position"]))
+        target_position = int(round(_clamp_position(float(kwargs["position"]))))
         current_position = self._calculate_position()
+        current_position_int = int(round(current_position))
 
-        if abs(target_position - current_position) < 0.5:
+        if target_position == current_position_int:
             return
 
-        if target_position > current_position:
+        send_stop_at_target = 0 < target_position < 100 and self._enable_set_position
+
+        if target_position > current_position_int:
             reply = await self._hub.send_command(self._bank, self._bank_channel, CMD_UP)
             self._store_reply(reply)
-            await self._start_motion("opening", target_position, send_stop_at_target=True)
+            await self._start_motion(
+                MOTION_OPENING,
+                float(target_position if send_stop_at_target else 100),
+                send_stop_at_target=send_stop_at_target,
+            )
         else:
             reply = await self._hub.send_command(self._bank, self._bank_channel, CMD_DOWN)
             self._store_reply(reply)
-            await self._start_motion("closing", target_position, send_stop_at_target=True)
+            await self._start_motion(
+                MOTION_CLOSING,
+                float(target_position if send_stop_at_target else 0),
+                send_stop_at_target=send_stop_at_target,
+            )
 
         self.async_write_ha_state()
 
@@ -176,7 +186,7 @@ class GaposaCover(CoverEntity):
         """Apply updated entry data without recreating the entity."""
         current_position = self._calculate_position()
         self._position = current_position
-        if self._motion_direction is not None:
+        if self._motion_state != MOTION_STOPPED:
             self._motion_start_position = current_position
             self._motion_start_time = monotonic()
 
@@ -200,13 +210,13 @@ class GaposaCover(CoverEntity):
         self._attr_supported_features = features
 
     def _calculate_position(self) -> float:
-        if self._motion_direction is None or self._motion_start_time is None:
+        if self._motion_state == MOTION_STOPPED or self._motion_start_time is None:
             return _clamp_position(self._position)
 
         elapsed_seconds = max(0.0, monotonic() - self._motion_start_time)
         traveled_percent = (elapsed_seconds / self._travel_time) * 100
 
-        if self._motion_direction == "opening":
+        if self._motion_state == MOTION_OPENING:
             return _clamp_position(
                 min(self._motion_start_position + traveled_percent, self._target_position)
             )
@@ -217,12 +227,18 @@ class GaposaCover(CoverEntity):
 
     def _sync_state(self) -> None:
         current_position = self._calculate_position()
-        if self._motion_direction is None:
+        if self._motion_state == MOTION_STOPPED:
             self._position = current_position
         self._attr_current_cover_position = int(round(current_position))
-        self._attr_is_opening = self._motion_direction == "opening"
-        self._attr_is_closing = self._motion_direction == "closing"
-        self._attr_is_closed = current_position <= 0 and self._motion_direction is None
+        self._attr_is_closed = current_position <= 0 and self._motion_state == MOTION_STOPPED
+
+    @property
+    def is_opening(self) -> bool:
+        return self._motion_state == MOTION_OPENING
+
+    @property
+    def is_closing(self) -> bool:
+        return self._motion_state == MOTION_CLOSING
 
     def _store_reply(self, reply: str | None) -> None:
         if reply:
@@ -238,7 +254,7 @@ class GaposaCover(CoverEntity):
         current_position = self._calculate_position()
         await self._cancel_motion_task()
         self._position = current_position
-        self._motion_direction = direction
+        self._motion_state = direction
         self._motion_start_position = current_position
         self._target_position = _clamp_position(target_position)
         self._motion_start_time = monotonic()
@@ -249,7 +265,7 @@ class GaposaCover(CoverEntity):
     async def _freeze_motion(self) -> None:
         self._position = self._calculate_position()
         await self._cancel_motion_task()
-        self._motion_direction = None
+        self._motion_state = MOTION_STOPPED
         self._motion_start_time = None
         self._motion_start_position = self._position
         self._target_position = self._position
@@ -271,7 +287,7 @@ class GaposaCover(CoverEntity):
     async def _run_motion_timer(self) -> None:
         """Update position during motion until the destination is reached."""
         try:
-            while self._motion_direction is not None:
+            while self._motion_state != MOTION_STOPPED:
                 current_position = self._calculate_position()
                 remaining_percent = abs(self._target_position - current_position)
                 if remaining_percent < 0.5:
@@ -297,7 +313,7 @@ class GaposaCover(CoverEntity):
 
         self._motion_task = None
         self._position = target_position
-        self._motion_direction = None
+        self._motion_state = MOTION_STOPPED
         self._motion_start_time = None
         self._motion_start_position = target_position
         self._target_position = target_position

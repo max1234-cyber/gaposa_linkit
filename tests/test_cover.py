@@ -190,6 +190,56 @@ async def test_cover_set_position_auto_stops_when_enabled(mock_hub):
 
 
 @pytest.mark.asyncio
+async def test_cover_set_position_to_endpoint_does_not_auto_stop(mock_hub):
+    """Test set position to 0/100 uses full-travel behavior without auto-stop."""
+    clock = {"now": 0.0}
+
+    with patch(
+        "custom_components.gaposa_linkit.cover.monotonic",
+        side_effect=lambda: clock["now"],
+    ):
+        cover = _make_cover(mock_hub, travel_time=4)
+        cover.async_write_ha_state = MagicMock()
+
+        await cover.async_set_cover_position(position=100)
+        clock["now"] = 3.0
+        await cover.async_set_cover_position(position=0)
+
+    mock_hub.send_command.assert_has_calls(
+        [
+            call(0x00, 1, CMD_UP),
+            call(0x00, 1, CMD_DOWN),
+        ]
+    )
+    assert call(0x00, 1, CMD_STOP) not in mock_hub.send_command.call_args_list
+
+
+@pytest.mark.asyncio
+async def test_cover_set_position_starts_motion_when_feature_disabled(mock_hub):
+    """Test set position still starts directional motion when set-position is disabled."""
+    clock = {"now": 0.0}
+
+    with patch(
+        "custom_components.gaposa_linkit.cover.monotonic",
+        side_effect=lambda: clock["now"],
+    ):
+        cover = _make_cover(mock_hub, travel_time=4, enable_set_position=False)
+        cover.async_write_ha_state = MagicMock()
+
+        await cover.async_set_cover_position(position=80)
+        clock["now"] = 3.0
+        await cover.async_set_cover_position(position=20)
+
+    mock_hub.send_command.assert_has_calls(
+        [
+            call(0x00, 1, CMD_UP),
+            call(0x00, 1, CMD_DOWN),
+        ]
+    )
+    assert call(0x00, 1, CMD_STOP) not in mock_hub.send_command.call_args_list
+
+
+@pytest.mark.asyncio
 async def test_cover_multiple_commands_in_quick_succession(mock_hub):
     """Test a new command recalculates motion from the current position."""
     clock = {"now": 0.0}
