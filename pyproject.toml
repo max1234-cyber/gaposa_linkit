@@ -1,0 +1,114 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gaposa-linkit"
+version = "1.0.0"
+description = "Home Assistant integration for Gaposa LinkIt Hub motorized roller shades"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "Apache License 2.0"}
+authors = [
+    {name = "max1234-cyber", email = "maxime.boucher+github@gmail.com"}
+]
+keywords = ["homeassistant", "gaposa", "linkit", "motorized shades", "roller shades"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Home Automation",
+]
+
+[project.urls]
+Repository = "https://github.com/max1234-cyber/gaposa_linkit"
+"Bug Tracker" = "https://github.com/max1234-cyber/gaposa_linkit/issues"
+"Discussions" = "https://github.com/max1234-cyber/gaposa_linkit/discussions"
+
+[tool.setuptools]
+packages = ["custom_components.gaposa_linkit"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+markers = [
+    "asyncio: marks tests as async (deselect with '-m \"not asyncio\"')",
+]
+addopts = "-v --strict-markers"
+
+[tool.coverage.run]
+source = ["custom_components/gaposa_linkit"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "^\\s*pass\\s*$",
+]
+precision = 2
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+lint.select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "N",      # pep8-naming
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "PT",     # flake8-pytest-style
+]
+lint.ignore = [
+    "E501",   # line too long (handled by formatter)
+    "W505",   # doc line too long
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["custom_components"]
+split-on-comma = true
+force-single-line = true
+
+[tool.ruff.lint.flake8-pytest-style]
+parametrize-names-type = "csv"
+parametrize-values-type = "list"
+parametrize-values-row-type = "tuple"
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+follow_imports = "normal"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "homeassistant.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
