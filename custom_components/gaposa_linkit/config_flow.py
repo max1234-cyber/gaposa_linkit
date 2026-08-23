@@ -16,7 +16,6 @@ from .const import CONNECTION_TYPE_USB
 from .const import DEFAULT_PORT
 from .const import DOMAIN
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -162,7 +161,7 @@ class GaposaLinkItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=_build_ip_schema(),
         )
 
-    async def async_step_usb(self, user_input=None):
+    async def async_step_usb(self, user_input=None):  # type: ignore[override]
         """Configure USB connection details."""
         if user_input is not None:
             user_input[CONF_CONNECTION_TYPE] = CONNECTION_TYPE_USB
@@ -176,8 +175,10 @@ class GaposaLinkItConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="usb",
             data_schema=_build_usb_schema(),
         )
+
+    @staticmethod
     @callback
-    def async_get_options_flow(config_entry):
+    def async_get_options_flow(config_entry):  # type: ignore[override]
         """Attach the options flow handler to enable the Configure button."""
         return GaposaLinkItOptionsFlowHandler()
 

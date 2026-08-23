@@ -2,6 +2,8 @@ import asyncio
 import logging
 from abc import ABC
 from abc import abstractmethod
+from collections.abc import Mapping
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST
@@ -22,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS = ["cover", "number", "switch"]
 
 
-def create_hub(data: dict) -> "GaposaLinkItHub":
+def create_hub(data: Mapping[str, Any]) -> "GaposaLinkItHub":
     """Factory: return the correct hub implementation based on connection type."""
     if data.get(CONF_CONNECTION_TYPE) == CONNECTION_TYPE_USB:
         return GaposaLinkItUSBHub(
@@ -59,7 +61,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
-def _connection_changed(previous: dict, current: dict) -> bool:
+def _connection_changed(previous: Mapping[str, Any], current: Mapping[str, Any]) -> bool:
     """Return True if any connection-relevant field has changed."""
     for key in (CONF_CONNECTION_TYPE, CONF_HOST, CONF_SERIAL_PORT):
         if previous.get(key) != current.get(key):
@@ -176,7 +178,7 @@ class GaposaLinkItUSBHub(GaposaLinkItHub):
 
     async def send_command(self, bank: int, channel: int, command: int) -> str | None:
         """Sends a raw 5-byte command payload over a USB serial port."""
-        import serial_asyncio  # noqa: PLC0415  (lazy import – optional dependency)
+        import serial_asyncio  # type: ignore[import-untyped]  # noqa: PLC0415  (lazy import – optional dependency)
 
         payload = self._build_payload(bank, channel, command)
 
