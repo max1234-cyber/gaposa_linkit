@@ -93,12 +93,14 @@ async def test_options_flow_init(hass: HomeAssistant):
 
     # Mock the config_entry
     mock_config_entry = MagicMock()
+    mock_config_entry.entry_id = "test_entry_id"
     mock_config_entry.data = {
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
         "channels": ["1", "2"],
     }
-    flow._config_entry = mock_config_entry
+    flow.handler = mock_config_entry.entry_id
+    hass.config_entries.async_get_known_entry = MagicMock(return_value=mock_config_entry)
 
     result = await flow.async_step_init()
     assert result["type"] == "form"
@@ -115,12 +117,14 @@ async def test_options_flow_init_with_input(hass: HomeAssistant):
 
     # Mock the config_entry
     mock_config_entry = MagicMock()
+    mock_config_entry.entry_id = "test_entry_id"
     mock_config_entry.data = {
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
         "channels": ["1", "2"],
     }
-    flow._config_entry = mock_config_entry
+    flow.handler = mock_config_entry.entry_id
+    hass.config_entries.async_get_known_entry = MagicMock(return_value=mock_config_entry)
 
     # Mock the async_update_entry method
     hass.config_entries.async_update_entry = MagicMock()
