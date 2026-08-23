@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 
-from custom_components.gaposa_linkit.const import DOMAIN, DEFAULT_PORT
+from custom_components.gaposa_linkit.const import DOMAIN
 
 
 @pytest.fixture
