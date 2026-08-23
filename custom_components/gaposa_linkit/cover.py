@@ -56,6 +56,11 @@ class GaposaCover(CoverEntity):
         self._last_hub_reply = None
         self._attr_extra_state_attributes = {"last_hub_reply": self._last_hub_reply}
 
+    @property
+    def extra_state_attributes(self):
+        """Return extra state attributes."""
+        return {"last_hub_reply": self._last_hub_reply}
+
     async def async_added_to_hass(self):
         """Run when entity about to be added to hass."""
         await super().async_added_to_hass()
