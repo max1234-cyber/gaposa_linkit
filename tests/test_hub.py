@@ -220,7 +220,7 @@ async def test_hub_send_command_timeout_logs_partial_reply(caplog):
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.read = AsyncMock(side_effect=[asyncio.TimeoutError(), b"#6"])
+    mock_reader.read = AsyncMock(side_effect=[asyncio.TimeoutError(), b"#6", asyncio.TimeoutError()])
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
         result = await hub.send_command(0, 1, CMD_UP)
@@ -315,5 +315,4 @@ def test_create_hub_defaults_to_ip():
     """create_hub defaults to IP when connection type is absent."""
     hub = create_hub({CONF_HOST: "192.168.1.100"})
     assert isinstance(hub, GaposaLinkItIPHub)
-
 
