@@ -8,5 +8,5 @@
   "integration_type": "hub",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/max1234-cyber/gaposa_linkit/issues",
-  "version": "1.0.4"
+  "version": "1.0.5"
 }
