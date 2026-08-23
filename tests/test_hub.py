@@ -1,10 +1,10 @@
 """Tests for Gaposa LinkIt Hub communication."""
 import asyncio
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock, call
+from unittest.mock import patch, AsyncMock
 
 from custom_components.gaposa_linkit import GaposaLinkItHub
-from custom_components.gaposa_linkit.const import CMD_UP, CMD_DOWN, CMD_STOP
+from custom_components.gaposa_linkit.const import CMD_UP, CMD_DOWN
 
 
 @pytest.mark.asyncio

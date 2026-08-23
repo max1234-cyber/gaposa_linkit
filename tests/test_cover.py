@@ -1,11 +1,11 @@
 """Tests for the Gaposa cover platform."""
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import MagicMock, AsyncMock
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.components.cover import CoverEntityFeature
 
-from custom_components.gaposa_linkit.const import DOMAIN, CMD_UP, CMD_DOWN, CMD_STOP
+from custom_components.gaposa_linkit.const import CMD_UP, CMD_DOWN, CMD_STOP
 
 
 @pytest.fixture
