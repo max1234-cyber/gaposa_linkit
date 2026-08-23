@@ -1,7 +1,6 @@
 {
   "name": "Gaposa LinkIt Hub",
   "content_in_root": false,
-  "zip_release": true,
   "homeassistant": "2023.5.0",
   "render_readme": true
 }
