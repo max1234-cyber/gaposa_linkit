@@ -10,13 +10,67 @@
           "channels": "Channels"
         }
       },
+      "travel_times": {
+        "title": "Configure cover travel times",
+        "description": "Set the full open travel time for each selected channel",
+        "data": {
+          "travel_time_1": "Travel time channel 1 (seconds)",
+          "travel_time_2": "Travel time channel 2 (seconds)",
+          "travel_time_3": "Travel time channel 3 (seconds)",
+          "travel_time_4": "Travel time channel 4 (seconds)",
+          "travel_time_5": "Travel time channel 5 (seconds)",
+          "travel_time_6": "Travel time channel 6 (seconds)",
+          "travel_time_7": "Travel time channel 7 (seconds)",
+          "travel_time_8": "Travel time channel 8 (seconds)",
+          "travel_time_9": "Travel time channel 9 (seconds)",
+          "travel_time_10": "Travel time channel 10 (seconds)",
+          "travel_time_11": "Travel time channel 11 (seconds)",
+          "travel_time_12": "Travel time channel 12 (seconds)",
+          "travel_time_13": "Travel time channel 13 (seconds)",
+          "travel_time_14": "Travel time channel 14 (seconds)",
+          "travel_time_15": "Travel time channel 15 (seconds)",
+          "travel_time_16": "Travel time channel 16 (seconds)",
+          "travel_time_17": "Travel time channel 17 (seconds)",
+          "travel_time_18": "Travel time channel 18 (seconds)",
+          "travel_time_19": "Travel time channel 19 (seconds)",
+          "travel_time_20": "Travel time channel 20 (seconds)",
+          "travel_time_21": "Travel time channel 21 (seconds)",
+          "travel_time_22": "Travel time channel 22 (seconds)",
+          "travel_time_23": "Travel time channel 23 (seconds)",
+          "travel_time_24": "Travel time channel 24 (seconds)"
+        }
+      },
       "init": {
         "title": "Reconfigure Gaposa LinkIt Hub",
         "description": "Update the connection settings for your Gaposa LinkIt Hub",
         "data": {
           "host": "Hub IP Address or Hostname",
           "port": "Port",
-          "channels": "Channels"
+          "channels": "Channels",
+          "travel_time_1": "Travel time channel 1 (seconds)",
+          "travel_time_2": "Travel time channel 2 (seconds)",
+          "travel_time_3": "Travel time channel 3 (seconds)",
+          "travel_time_4": "Travel time channel 4 (seconds)",
+          "travel_time_5": "Travel time channel 5 (seconds)",
+          "travel_time_6": "Travel time channel 6 (seconds)",
+          "travel_time_7": "Travel time channel 7 (seconds)",
+          "travel_time_8": "Travel time channel 8 (seconds)",
+          "travel_time_9": "Travel time channel 9 (seconds)",
+          "travel_time_10": "Travel time channel 10 (seconds)",
+          "travel_time_11": "Travel time channel 11 (seconds)",
+          "travel_time_12": "Travel time channel 12 (seconds)",
+          "travel_time_13": "Travel time channel 13 (seconds)",
+          "travel_time_14": "Travel time channel 14 (seconds)",
+          "travel_time_15": "Travel time channel 15 (seconds)",
+          "travel_time_16": "Travel time channel 16 (seconds)",
+          "travel_time_17": "Travel time channel 17 (seconds)",
+          "travel_time_18": "Travel time channel 18 (seconds)",
+          "travel_time_19": "Travel time channel 19 (seconds)",
+          "travel_time_20": "Travel time channel 20 (seconds)",
+          "travel_time_21": "Travel time channel 21 (seconds)",
+          "travel_time_22": "Travel time channel 22 (seconds)",
+          "travel_time_23": "Travel time channel 23 (seconds)",
+          "travel_time_24": "Travel time channel 24 (seconds)"
         }
       }
     }
