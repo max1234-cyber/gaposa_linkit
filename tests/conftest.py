@@ -4,7 +4,6 @@ from pathlib import Path
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 
-import pytest
 import pytest_asyncio
 from homeassistant.core import HomeAssistant
 
