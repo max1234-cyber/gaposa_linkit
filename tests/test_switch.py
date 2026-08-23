@@ -3,9 +3,9 @@
 from unittest.mock import MagicMock
 
 import pytest
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.entity import EntityCategory
 
 from custom_components.gaposa_linkit.const import CONF_ENABLE_SET_POSITION
 from custom_components.gaposa_linkit.const import get_config_update_signal
