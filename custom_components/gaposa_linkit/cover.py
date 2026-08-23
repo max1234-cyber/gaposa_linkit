@@ -7,8 +7,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import CMD_DOWN
 from .const import CMD_STOP
 from .const import CMD_UP
-
-# Adjust imports based on what you kept in const.py
 from .const import DOMAIN
 
 
