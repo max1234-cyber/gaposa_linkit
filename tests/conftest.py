@@ -1,7 +1,8 @@
 """pytest configuration and fixtures."""
 import sys
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
 
 import pytest
 from homeassistant.core import HomeAssistant

@@ -1,23 +1,24 @@
-from homeassistant.components.cover import (
-    CoverEntity,
-    CoverEntityFeature,
-)
+from homeassistant.components.cover import CoverEntity
+from homeassistant.components.cover import CoverEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-# Adjust imports based on what you kept in const.py
-from .const import DOMAIN, CMD_UP, CMD_DOWN, CMD_STOP
+from .const import CMD_DOWN
+from .const import CMD_STOP
+from .const import CMD_UP
+from .const import DOMAIN
+
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ):
     """Set up the Gaposa Cover platform."""
     hub = hass.data[DOMAIN][entry.entry_id]
-    
+
     # Safely retrieve the list of enabled channels from the config flow
     enabled_channels = entry.data.get("channels", [])
-    
+
     entities = []
     for ch_str in enabled_channels:
         channel_id = int(ch_str)
@@ -27,7 +28,7 @@ async def async_setup_entry(
             bank, bank_ch = 0x01, channel_id - 8
         else:
             bank, bank_ch = 0x02, channel_id - 16
-            
+
         entities.append(GaposaCover(hub, entry.entry_id, channel_id, bank, bank_ch))
 
     async_add_entities(entities)
@@ -42,11 +43,11 @@ class GaposaCover(CoverEntity):
         self._bank_channel = bank_channel
         self._attr_unique_id = f"{entry_id}_channel_{channel_id}"
         self._attr_name = f"Gaposa Shade Channel {channel_id}"
-        
+
         self._attr_supported_features = (
             CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE | CoverEntityFeature.STOP
         )
-        
+
         # FIX: Define the attribute Home Assistant is looking for.
         # Starting as None means the state is unknown when HA first boots.
         self._attr_is_closed = None
@@ -57,11 +58,11 @@ class GaposaCover(CoverEntity):
     async def async_added_to_hass(self):
         """Run when entity about to be added to hass."""
         await super().async_added_to_hass()
-        
-        # If there is no previous state saved in Home Assistant's history, 
+
+        # If there is no previous state saved in Home Assistant's history,
         # default to 'closed' (or 'open') so Matter/HomeKit sees a valid state.
         if self.state is None:
-            self._attr_is_closed = True 
+            self._attr_is_closed = True
             self.async_write_ha_state()
 
     @property

@@ -1,15 +1,18 @@
 import asyncio
 import logging
+
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_HOST
+from homeassistant.const import CONF_PORT
 from homeassistant.core import HomeAssistant
-from homeassistant.const import CONF_HOST, CONF_PORT
+
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
-    
+
     # Safely get host and port from config entry data
     host = entry.data[CONF_HOST]
     port = entry.data.get(CONF_PORT, 4999)
@@ -18,10 +21,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = hub
 
     await hass.config_entries.async_forward_entry_setups(entry, ["cover"])
-    
+
     # Register the update listener for the Options Flow (Configure button)
     entry.async_on_unload(entry.add_update_listener(update_listener))
-    
+
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -54,15 +57,15 @@ class GaposaLinkItHub:
             try:
                 # Open non-blocking TCP socket connection (with a 5-second connection timeout)
                 reader, writer = await asyncio.wait_for(
-                    asyncio.open_connection(self.host, self.port), 
+                    asyncio.open_connection(self.host, self.port),
                     timeout=5.0
                 )
-        
+
                 # Send the raw bytes down the wire
                 writer.write(payload)
                 await writer.drain()
                 _LOGGER.info("Sent Gaposa command: [%s] to %s:%s", payload.hex(), self.host, self.port)
-        
+
                 # Wait for and read the response back from the LinkIt hub (3-second timeout)
                 try:
                     data = await asyncio.wait_for(reader.read(1024), timeout=3.0)
@@ -77,10 +80,10 @@ class GaposaLinkItHub:
                     # Cleanly close the socket after the read attempt finishes or times out
                     writer.close()
                     await writer.wait_closed()
-                    
+
             except asyncio.TimeoutError:
                 _LOGGER.error("Timeout: Could not connect to iTach at %s:%s within 5 seconds.", self.host, self.port)
             except Exception as err:
                 _LOGGER.error("Error communicating with iTach at %s:%s - %s", self.host, self.port, err)
-        
+
         return reply_str

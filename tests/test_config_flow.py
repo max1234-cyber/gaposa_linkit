@@ -1,7 +1,11 @@
 """Tests for the Gaposa LinkIt integration."""
+from unittest.mock import AsyncMock
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import patch, MagicMock, AsyncMock
-from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.const import CONF_HOST
+from homeassistant.const import CONF_PORT
 from homeassistant.core import HomeAssistant
 
 
@@ -28,9 +32,7 @@ def mock_setup_entry():
 @pytest.mark.asyncio
 async def test_config_flow_user_step(hass: HomeAssistant):
     """Test the user step of the config flow."""
-    from custom_components.gaposa_linkit.config_flow import (
-        GaposaLinkItConfigFlow,
-    )
+    from custom_components.gaposa_linkit.config_flow import GaposaLinkItConfigFlow
 
     flow = GaposaLinkItConfigFlow()
     flow.hass = hass
@@ -46,9 +48,7 @@ async def test_config_flow_user_step(hass: HomeAssistant):
 @pytest.mark.asyncio
 async def test_config_flow_user_step_with_input(hass: HomeAssistant):
     """Test the user step with valid input."""
-    from custom_components.gaposa_linkit.config_flow import (
-        GaposaLinkItConfigFlow,
-    )
+    from custom_components.gaposa_linkit.config_flow import GaposaLinkItConfigFlow
 
     flow = GaposaLinkItConfigFlow()
     flow.hass = hass
@@ -68,9 +68,7 @@ async def test_config_flow_user_step_with_input(hass: HomeAssistant):
 @pytest.mark.asyncio
 async def test_config_flow_user_step_with_default_port(hass: HomeAssistant):
     """Test the user step with default port."""
-    from custom_components.gaposa_linkit.config_flow import (
-        GaposaLinkItConfigFlow,
-    )
+    from custom_components.gaposa_linkit.config_flow import GaposaLinkItConfigFlow
 
     flow = GaposaLinkItConfigFlow()
     flow.hass = hass
@@ -88,9 +86,7 @@ async def test_config_flow_user_step_with_default_port(hass: HomeAssistant):
 @pytest.mark.asyncio
 async def test_options_flow_init(hass: HomeAssistant):
     """Test the init step of the options flow."""
-    from custom_components.gaposa_linkit.config_flow import (
-        GaposaLinkItOptionsFlowHandler,
-    )
+    from custom_components.gaposa_linkit.config_flow import GaposaLinkItOptionsFlowHandler
 
     flow = GaposaLinkItOptionsFlowHandler()
     flow.hass = hass
@@ -112,9 +108,7 @@ async def test_options_flow_init(hass: HomeAssistant):
 @pytest.mark.asyncio
 async def test_options_flow_init_with_input(hass: HomeAssistant):
     """Test the init step with input."""
-    from custom_components.gaposa_linkit.config_flow import (
-        GaposaLinkItOptionsFlowHandler,
-    )
+    from custom_components.gaposa_linkit.config_flow import GaposaLinkItOptionsFlowHandler
 
     flow = GaposaLinkItOptionsFlowHandler()
     flow.hass = hass
