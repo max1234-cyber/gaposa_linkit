@@ -2,11 +2,11 @@
 
 [![hacs-custom](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://hacs.xyz/docs/faq/custom_repositories)
 
-An unofficial Home Assistant integration for the **Gaposa LinkIt Hub** that enables local control of motorized roller shades via IP-based serial communication. Control your shades directly without relying on cloud-based server communication.
+An unofficial Home Assistant integration for the **Gaposa LinkIt Hub** that enables local control of motorized roller shades via IP-based serial communication. Control your shades directly without [...]
 
 ## ⚠️ Important: LinkIt Hub Only
 
-**This integration works ONLY with the Gaposa LinkIt Hub.** It does NOT work with the Gaposa Rollapp Hub because the Rollapp Hub does not have an RJ9 serial port for local communication. Make sure you have the correct hub model before installing this integration.
+**This integration works ONLY with the Gaposa LinkIt Hub.** It does NOT work with the Gaposa Rollapp Hub because the Rollapp Hub does not have an RJ9 serial port for local communication. Make sure [...]
 
 ## Features
 
@@ -24,7 +24,7 @@ This integration requires:
 - An **IP-to-Serial adapter** for network communication
   - **Tested with**: Global Caché ITach IP2SL
   - Your adapter must be configured according to the [Gaposa LinkIt documentation](https://www.gaposa.it/eng/linkit/)
-- **Home Assistant 2023.5.0** or later
+- **Home Assistant 2025.1.0** or later
 - Local network access to the IP-to-Serial adapter
 
 ## Installation
@@ -51,7 +51,7 @@ This integration is available as a **custom repository** in HACS:
 
 ### Testing Your IP-to-Serial Adapter
 
-Before configuring the integration, verify your IP-to-Serial adapter (e.g., Global Caché ITach IP2SL) is working correctly by testing it directly from your Home Assistant host or another machine with network access.
+Before configuring the integration, verify your IP-to-Serial adapter (e.g., Global Caché ITach IP2SL) is working correctly by testing it directly from your Home Assistant host or another machine [...]
 
 #### Prerequisites
 - `netcat` (nc) command-line utility installed
@@ -136,7 +136,7 @@ automation:
 
 ### Shade Pairing
 
-Shade pairing must be done directly via the **Gaposa Rollapp** mobile application. Since pairing is a one-time operation that requires physical interaction with the shades, it is intentionally not included in this integration.
+Shade pairing must be done directly via the **Gaposa Rollapp** mobile application. Since pairing is a one-time operation that requires physical interaction with the shades, it is intentionally no[...]
 
 ### Adapter Configuration
 
@@ -186,4 +186,4 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 ---
 
-**⚠️ Disclaimer**: This is an unofficial integration. Gaposa is not affiliated with or endorsing this project. Use at your own risk. Always test shade movements carefully before using in automations.
+**⚠️ Disclaimer**: This is an unofficial integration. Gaposa is not affiliated with or endorsing this project. Use at your own risk. Always test shade movements carefully before using in auto[...]
