@@ -107,6 +107,8 @@ class GaposaCover(CoverEntity):
         self._attr_unique_id = f"{entry_id}_channel_{channel_id}"
         self._attr_name = f"Gaposa Shade Channel {channel_id}"
         self._attr_is_closed = None
+        self._attr_is_opening = False
+        self._attr_is_closing = False
         self._attr_current_cover_position = 0
         self._attr_extra_state_attributes: dict = {"last_hub_reply": None}
         self._update_supported_features()
@@ -231,14 +233,8 @@ class GaposaCover(CoverEntity):
             self._position = current_position
         self._attr_current_cover_position = int(round(current_position))
         self._attr_is_closed = current_position <= 0 and self._motion_state == MOTION_STOPPED
-
-    @property
-    def is_opening(self) -> bool:
-        return self._motion_state == MOTION_OPENING
-
-    @property
-    def is_closing(self) -> bool:
-        return self._motion_state == MOTION_CLOSING
+        self._attr_is_opening = self._motion_state == MOTION_OPENING
+        self._attr_is_closing = self._motion_state == MOTION_CLOSING
 
     def _store_reply(self, reply: str | None) -> None:
         if reply:
