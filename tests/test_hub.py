@@ -10,6 +10,7 @@ from homeassistant.const import CONF_PORT
 from custom_components.gaposa_linkit import GaposaLinkItHub
 from custom_components.gaposa_linkit import GaposaLinkItIPHub
 from custom_components.gaposa_linkit import GaposaLinkItUSBHub
+from custom_components.gaposa_linkit import HUB_REPLY_SIZE
 from custom_components.gaposa_linkit import create_hub
 from custom_components.gaposa_linkit.const import CMD_DOWN
 from custom_components.gaposa_linkit.const import CMD_UP
@@ -47,6 +48,7 @@ async def test_hub_send_command_success():
         assert result == "OK"
         mock_writer.write.assert_called_once()
         mock_writer.close.assert_called_once()
+        mock_reader.read.assert_called_once_with(HUB_REPLY_SIZE)
 
 
 @pytest.mark.asyncio
@@ -202,6 +204,7 @@ async def test_usb_hub_send_command_success():
         assert result == "OK"
         mock_writer.write.assert_called_once()
         mock_writer.close.assert_called_once()
+        mock_reader.read.assert_called_once_with(HUB_REPLY_SIZE)
         mock_serial_asyncio.open_serial_connection.assert_called_once_with(
             url="/dev/ttyUSB0",
             baudrate=DEFAULT_BAUD_RATE,
@@ -226,6 +229,7 @@ async def test_hub_send_command_timeout_logs_partial_reply(caplog):
         result = await hub.send_command(0, 1, CMD_UP)
         assert result == "#6"
         assert "partial reply" in caplog.text
+        assert mock_reader.read.await_args_list[0].args == (HUB_REPLY_SIZE,)
 
 
 @pytest.mark.asyncio
@@ -315,4 +319,3 @@ def test_create_hub_defaults_to_ip():
     """create_hub defaults to IP when connection type is absent."""
     hub = create_hub({CONF_HOST: "192.168.1.100"})
     assert isinstance(hub, GaposaLinkItIPHub)
-

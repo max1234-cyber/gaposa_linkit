@@ -22,6 +22,7 @@ from .const import get_config_update_signal
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = ["cover", "number", "switch"]
+HUB_REPLY_SIZE = 3
 
 
 def create_hub(data: Mapping[str, Any]) -> "GaposaLinkItHub":
@@ -113,20 +114,25 @@ class GaposaLinkItHub(ABC):
     ) -> bytes:
         """Read immediately available bytes without blocking for long."""
         chunks: list[bytes] = []
+        total_read = 0
         for _ in range(max_reads):
+            remaining = HUB_REPLY_SIZE - total_read
+            if remaining <= 0:
+                break
             try:
-                chunk = await asyncio.wait_for(reader.read(1024), timeout=0.01)
+                chunk = await asyncio.wait_for(reader.read(remaining), timeout=0.01)
             except asyncio.TimeoutError:
                 break
             if not chunk:
                 break
             chunks.append(chunk)
+            total_read += len(chunk)
         return b"".join(chunks)
 
     async def _read_reply(self, reader: asyncio.StreamReader, *, source: str) -> str | None:
         """Read the reply and log partial bytes when the initial read times out."""
         try:
-            data = await asyncio.wait_for(reader.read(1024), timeout=3.0)
+            data = await asyncio.wait_for(reader.read(HUB_REPLY_SIZE), timeout=3.0)
         except asyncio.TimeoutError:
             partial_data = await self._read_available_bytes(reader)
             if partial_data:
