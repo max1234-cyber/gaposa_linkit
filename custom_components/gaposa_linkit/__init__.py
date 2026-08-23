@@ -121,8 +121,6 @@ class GaposaLinkItHub(ABC):
             if not chunk:
                 break
             chunks.append(chunk)
-            if len(chunk) < 1024:
-                break
         return b"".join(chunks)
 
     async def _read_reply(self, reader: asyncio.StreamReader, *, source: str) -> str | None:
