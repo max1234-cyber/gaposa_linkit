@@ -108,6 +108,48 @@ class GaposaLinkItHub(ABC):
     async def send_command(self, bank: int, channel: int, command: int) -> str | None:
         """Send a command to the hub and return the reply (if any)."""
 
+    async def _read_available_bytes(self, reader, *, max_reads: int = 5) -> bytes:
+        """Read immediately available bytes without blocking for long."""
+        chunks: list[bytes] = []
+        for _ in range(max_reads):
+            try:
+                chunk = await asyncio.wait_for(reader.read(1024), timeout=0.01)
+            except asyncio.TimeoutError:
+                break
+            if not chunk:
+                break
+            chunks.append(chunk)
+            if len(chunk) < 1024:
+                break
+        return b"".join(chunks)
+
+    async def _read_reply(self, reader, *, source: str) -> str | None:
+        """Read the reply and log partial bytes when the initial read times out."""
+        try:
+            data = await asyncio.wait_for(reader.read(1024), timeout=3.0)
+        except asyncio.TimeoutError:
+            partial_data = await self._read_available_bytes(reader)
+            if partial_data:
+                partial_reply = partial_data.decode("utf-8", errors="ignore").strip()
+                _LOGGER.warning(
+                    "Timed out waiting for reply from %s; partial reply (%s bytes): hex=%s, decoded=%r",
+                    source,
+                    len(partial_data),
+                    partial_data.hex(),
+                    partial_reply,
+                )
+                return partial_reply
+            _LOGGER.warning("Timed out waiting for reply from %s (no response within 3s).", source)
+            return None
+
+        if not data:
+            _LOGGER.warning("%s closed the connection without returning a reply.", source)
+            return None
+
+        reply_str = data.decode("utf-8", errors="ignore").strip()
+        _LOGGER.info("Received reply from Gaposa hub: %s", reply_str)
+        return reply_str
+
 
 # ---------------------------------------------------------------------------
 # IP (TCP) hub implementation
@@ -140,16 +182,9 @@ class GaposaLinkItIPHub(GaposaLinkItHub):
                 await writer.drain()
                 _LOGGER.info("Sent Gaposa command: [%s] to %s:%s", payload.hex(), self.host, self.port)
 
-                # Wait for and read the response back from the LinkIt hub (3-second timeout)
                 try:
-                    data = await asyncio.wait_for(reader.read(1024), timeout=3.0)
-                    if data:
-                        reply_str = data.decode("utf-8", errors="ignore").strip()
-                        _LOGGER.info("Received reply from Gaposa hub: %s", reply_str)
-                    else:
-                        _LOGGER.warning("iTach/LinkIt closed the connection without returning a reply.")
-                except asyncio.TimeoutError:
-                    _LOGGER.warning("Timed out waiting for reply from Gaposa hub (no response within 3s).")
+                    # Wait for and read the response back from the LinkIt hub.
+                    reply_str = await self._read_reply(reader, source=f"{self.host}:{self.port}")
                 finally:
                     # Cleanly close the socket after the read attempt finishes or times out
                     writer.close()
@@ -189,6 +224,9 @@ class GaposaLinkItUSBHub(GaposaLinkItHub):
                     serial_asyncio.open_serial_connection(
                         url=self.serial_port,
                         baudrate=self.baud_rate,
+                        bytesize=8,
+                        parity="N",
+                        stopbits=1,
                     ),
                     timeout=5.0,
                 )
@@ -202,14 +240,7 @@ class GaposaLinkItUSBHub(GaposaLinkItHub):
                 )
 
                 try:
-                    data = await asyncio.wait_for(reader.read(1024), timeout=3.0)
-                    if data:
-                        reply_str = data.decode("utf-8", errors="ignore").strip()
-                        _LOGGER.info("Received reply from Gaposa hub: %s", reply_str)
-                    else:
-                        _LOGGER.warning("USB serial port closed without returning a reply.")
-                except asyncio.TimeoutError:
-                    _LOGGER.warning("Timed out waiting for reply from Gaposa hub via USB (no response within 3s).")
+                    reply_str = await self._read_reply(reader, source=f"USB serial {self.serial_port}")
                 finally:
                     writer.close()
 

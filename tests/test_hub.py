@@ -202,8 +202,30 @@ async def test_usb_hub_send_command_success():
         assert result == "OK"
         mock_writer.write.assert_called_once()
         mock_writer.close.assert_called_once()
+        mock_serial_asyncio.open_serial_connection.assert_called_once_with(
+            url="/dev/ttyUSB0",
+            baudrate=DEFAULT_BAUD_RATE,
+            bytesize=8,
+            parity="N",
+            stopbits=1,
+        )
     finally:
         del sys.modules["serial_asyncio"]
+
+
+@pytest.mark.asyncio
+async def test_hub_send_command_timeout_logs_partial_reply(caplog):
+    """When timeout happens, any late partial bytes are logged and returned."""
+    hub = GaposaLinkItHub("192.168.1.100", 4999)
+
+    mock_reader = AsyncMock()
+    mock_writer = AsyncMock()
+    mock_reader.read = AsyncMock(side_effect=[asyncio.TimeoutError(), b"#6"])
+
+    with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
+        result = await hub.send_command(0, 1, CMD_UP)
+        assert result == "#6"
+        assert "partial reply" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -293,6 +315,5 @@ def test_create_hub_defaults_to_ip():
     """create_hub defaults to IP when connection type is absent."""
     hub = create_hub({CONF_HOST: "192.168.1.100"})
     assert isinstance(hub, GaposaLinkItIPHub)
-
 
 
