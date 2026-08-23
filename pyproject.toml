@@ -29,6 +29,15 @@ Repository = "https://github.com/max1234-cyber/gaposa_linkit"
 "Bug Tracker" = "https://github.com/max1234-cyber/gaposa_linkit/issues"
 "Discussions" = "https://github.com/max1234-cyber/gaposa_linkit/discussions"
 
+[project.optional-dependencies]
+dev = [
+    "homeassistant",
+    "pyright",
+    "pytest",
+    "pytest-asyncio",
+    "pytest-split",
+]
+
 [tool.setuptools]
 packages = ["custom_components.gaposa_linkit"]
 
