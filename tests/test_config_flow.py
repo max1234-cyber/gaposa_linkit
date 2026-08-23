@@ -120,10 +120,8 @@ async def test_options_flow_init(hass: HomeAssistant):
         CONF_HOST,
         CONF_PORT,
         CONF_CHANNELS,
-        "channel_1_allow_set_position",
-        "channel_1_travel_time",
-        "channel_2_allow_set_position",
-        "channel_2_travel_time",
+        "channel_1",
+        "channel_2",
     }
 
 
@@ -151,10 +149,14 @@ async def test_options_flow_init_with_input(hass: HomeAssistant):
         CONF_HOST: "192.168.1.101",
         CONF_PORT: 5000,
         CONF_CHANNELS: ["1", "2", "3"],
-        "channel_1_allow_set_position": False,
-        "channel_1_travel_time": 30,
-        "channel_2_allow_set_position": False,
-        "channel_2_travel_time": 45,
+        "channel_1": {
+            "allow_set_position": False,
+            "travel_time": 30,
+        },
+        "channel_2": {
+            "allow_set_position": False,
+            "travel_time": 45,
+        },
     }
 
     result = await flow.async_step_init(user_input=user_input)

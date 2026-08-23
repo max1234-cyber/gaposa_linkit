@@ -7,55 +7,177 @@
         "data": {
           "host": "Hub IP Address or Hostname",
           "port": "Port",
-          "channels": "Channels",
-          "channel_1_allow_set_position": "Channel 1 - Allow setting custom position",
-          "channel_1_travel_time": "Channel 1 - Travel Time",
-          "channel_2_allow_set_position": "Channel 2 - Allow setting custom position",
-          "channel_2_travel_time": "Channel 2 - Travel Time",
-          "channel_3_allow_set_position": "Channel 3 - Allow setting custom position",
-          "channel_3_travel_time": "Channel 3 - Travel Time",
-          "channel_4_allow_set_position": "Channel 4 - Allow setting custom position",
-          "channel_4_travel_time": "Channel 4 - Travel Time",
-          "channel_5_allow_set_position": "Channel 5 - Allow setting custom position",
-          "channel_5_travel_time": "Channel 5 - Travel Time",
-          "channel_6_allow_set_position": "Channel 6 - Allow setting custom position",
-          "channel_6_travel_time": "Channel 6 - Travel Time",
-          "channel_7_allow_set_position": "Channel 7 - Allow setting custom position",
-          "channel_7_travel_time": "Channel 7 - Travel Time",
-          "channel_8_allow_set_position": "Channel 8 - Allow setting custom position",
-          "channel_8_travel_time": "Channel 8 - Travel Time",
-          "channel_9_allow_set_position": "Channel 9 - Allow setting custom position",
-          "channel_9_travel_time": "Channel 9 - Travel Time",
-          "channel_10_allow_set_position": "Channel 10 - Allow setting custom position",
-          "channel_10_travel_time": "Channel 10 - Travel Time",
-          "channel_11_allow_set_position": "Channel 11 - Allow setting custom position",
-          "channel_11_travel_time": "Channel 11 - Travel Time",
-          "channel_12_allow_set_position": "Channel 12 - Allow setting custom position",
-          "channel_12_travel_time": "Channel 12 - Travel Time",
-          "channel_13_allow_set_position": "Channel 13 - Allow setting custom position",
-          "channel_13_travel_time": "Channel 13 - Travel Time",
-          "channel_14_allow_set_position": "Channel 14 - Allow setting custom position",
-          "channel_14_travel_time": "Channel 14 - Travel Time",
-          "channel_15_allow_set_position": "Channel 15 - Allow setting custom position",
-          "channel_15_travel_time": "Channel 15 - Travel Time",
-          "channel_16_allow_set_position": "Channel 16 - Allow setting custom position",
-          "channel_16_travel_time": "Channel 16 - Travel Time",
-          "channel_17_allow_set_position": "Channel 17 - Allow setting custom position",
-          "channel_17_travel_time": "Channel 17 - Travel Time",
-          "channel_18_allow_set_position": "Channel 18 - Allow setting custom position",
-          "channel_18_travel_time": "Channel 18 - Travel Time",
-          "channel_19_allow_set_position": "Channel 19 - Allow setting custom position",
-          "channel_19_travel_time": "Channel 19 - Travel Time",
-          "channel_20_allow_set_position": "Channel 20 - Allow setting custom position",
-          "channel_20_travel_time": "Channel 20 - Travel Time",
-          "channel_21_allow_set_position": "Channel 21 - Allow setting custom position",
-          "channel_21_travel_time": "Channel 21 - Travel Time",
-          "channel_22_allow_set_position": "Channel 22 - Allow setting custom position",
-          "channel_22_travel_time": "Channel 22 - Travel Time",
-          "channel_23_allow_set_position": "Channel 23 - Allow setting custom position",
-          "channel_23_travel_time": "Channel 23 - Travel Time",
-          "channel_24_allow_set_position": "Channel 24 - Allow setting custom position",
-          "channel_24_travel_time": "Channel 24 - Travel Time"
+          "channels": "Channels"
+        },
+        "sections": {
+          "channel_1": {
+            "name": "Channel 1",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_2": {
+            "name": "Channel 2",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_3": {
+            "name": "Channel 3",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_4": {
+            "name": "Channel 4",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_5": {
+            "name": "Channel 5",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_6": {
+            "name": "Channel 6",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_7": {
+            "name": "Channel 7",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_8": {
+            "name": "Channel 8",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_9": {
+            "name": "Channel 9",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_10": {
+            "name": "Channel 10",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_11": {
+            "name": "Channel 11",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_12": {
+            "name": "Channel 12",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_13": {
+            "name": "Channel 13",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_14": {
+            "name": "Channel 14",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_15": {
+            "name": "Channel 15",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_16": {
+            "name": "Channel 16",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_17": {
+            "name": "Channel 17",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_18": {
+            "name": "Channel 18",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_19": {
+            "name": "Channel 19",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_20": {
+            "name": "Channel 20",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_21": {
+            "name": "Channel 21",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_22": {
+            "name": "Channel 22",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_23": {
+            "name": "Channel 23",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_24": {
+            "name": "Channel 24",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          }
         }
       },
       "init": {
@@ -64,55 +186,177 @@
         "data": {
           "host": "Hub IP Address or Hostname",
           "port": "Port",
-          "channels": "Channels",
-          "channel_1_allow_set_position": "Channel 1 - Allow setting custom position",
-          "channel_1_travel_time": "Channel 1 - Travel Time",
-          "channel_2_allow_set_position": "Channel 2 - Allow setting custom position",
-          "channel_2_travel_time": "Channel 2 - Travel Time",
-          "channel_3_allow_set_position": "Channel 3 - Allow setting custom position",
-          "channel_3_travel_time": "Channel 3 - Travel Time",
-          "channel_4_allow_set_position": "Channel 4 - Allow setting custom position",
-          "channel_4_travel_time": "Channel 4 - Travel Time",
-          "channel_5_allow_set_position": "Channel 5 - Allow setting custom position",
-          "channel_5_travel_time": "Channel 5 - Travel Time",
-          "channel_6_allow_set_position": "Channel 6 - Allow setting custom position",
-          "channel_6_travel_time": "Channel 6 - Travel Time",
-          "channel_7_allow_set_position": "Channel 7 - Allow setting custom position",
-          "channel_7_travel_time": "Channel 7 - Travel Time",
-          "channel_8_allow_set_position": "Channel 8 - Allow setting custom position",
-          "channel_8_travel_time": "Channel 8 - Travel Time",
-          "channel_9_allow_set_position": "Channel 9 - Allow setting custom position",
-          "channel_9_travel_time": "Channel 9 - Travel Time",
-          "channel_10_allow_set_position": "Channel 10 - Allow setting custom position",
-          "channel_10_travel_time": "Channel 10 - Travel Time",
-          "channel_11_allow_set_position": "Channel 11 - Allow setting custom position",
-          "channel_11_travel_time": "Channel 11 - Travel Time",
-          "channel_12_allow_set_position": "Channel 12 - Allow setting custom position",
-          "channel_12_travel_time": "Channel 12 - Travel Time",
-          "channel_13_allow_set_position": "Channel 13 - Allow setting custom position",
-          "channel_13_travel_time": "Channel 13 - Travel Time",
-          "channel_14_allow_set_position": "Channel 14 - Allow setting custom position",
-          "channel_14_travel_time": "Channel 14 - Travel Time",
-          "channel_15_allow_set_position": "Channel 15 - Allow setting custom position",
-          "channel_15_travel_time": "Channel 15 - Travel Time",
-          "channel_16_allow_set_position": "Channel 16 - Allow setting custom position",
-          "channel_16_travel_time": "Channel 16 - Travel Time",
-          "channel_17_allow_set_position": "Channel 17 - Allow setting custom position",
-          "channel_17_travel_time": "Channel 17 - Travel Time",
-          "channel_18_allow_set_position": "Channel 18 - Allow setting custom position",
-          "channel_18_travel_time": "Channel 18 - Travel Time",
-          "channel_19_allow_set_position": "Channel 19 - Allow setting custom position",
-          "channel_19_travel_time": "Channel 19 - Travel Time",
-          "channel_20_allow_set_position": "Channel 20 - Allow setting custom position",
-          "channel_20_travel_time": "Channel 20 - Travel Time",
-          "channel_21_allow_set_position": "Channel 21 - Allow setting custom position",
-          "channel_21_travel_time": "Channel 21 - Travel Time",
-          "channel_22_allow_set_position": "Channel 22 - Allow setting custom position",
-          "channel_22_travel_time": "Channel 22 - Travel Time",
-          "channel_23_allow_set_position": "Channel 23 - Allow setting custom position",
-          "channel_23_travel_time": "Channel 23 - Travel Time",
-          "channel_24_allow_set_position": "Channel 24 - Allow setting custom position",
-          "channel_24_travel_time": "Channel 24 - Travel Time"
+          "channels": "Channels"
+        },
+        "sections": {
+          "channel_1": {
+            "name": "Channel 1",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_2": {
+            "name": "Channel 2",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_3": {
+            "name": "Channel 3",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_4": {
+            "name": "Channel 4",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_5": {
+            "name": "Channel 5",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_6": {
+            "name": "Channel 6",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_7": {
+            "name": "Channel 7",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_8": {
+            "name": "Channel 8",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_9": {
+            "name": "Channel 9",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_10": {
+            "name": "Channel 10",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_11": {
+            "name": "Channel 11",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_12": {
+            "name": "Channel 12",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_13": {
+            "name": "Channel 13",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_14": {
+            "name": "Channel 14",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_15": {
+            "name": "Channel 15",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_16": {
+            "name": "Channel 16",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_17": {
+            "name": "Channel 17",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_18": {
+            "name": "Channel 18",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_19": {
+            "name": "Channel 19",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_20": {
+            "name": "Channel 20",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_21": {
+            "name": "Channel 21",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_22": {
+            "name": "Channel 22",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_23": {
+            "name": "Channel 23",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          },
+          "channel_24": {
+            "name": "Channel 24",
+            "data": {
+              "allow_set_position": "Allow setting custom position",
+              "travel_time": "Travel Time"
+            }
+          }
         }
       }
     }

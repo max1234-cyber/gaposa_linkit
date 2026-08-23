@@ -6,6 +6,7 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_HOST
 from homeassistant.const import CONF_PORT
 from homeassistant.core import callback
+from homeassistant.data_entry_flow import section
 from homeassistant.helpers import selector
 
 from .const import CONF_CHANNELS
@@ -16,12 +17,8 @@ from .const import DEFAULT_TRAVEL_TIME
 from .const import DOMAIN
 
 
-def _travel_time_field(channel: str) -> str:
-    return f"channel_{channel}_travel_time"
-
-
-def _enable_set_position_field(channel: str) -> str:
-    return f"channel_{channel}_allow_set_position"
+def _channel_section_field(channel: str) -> str:
+    return f"channel_{channel}"
 
 
 def _normalize_travel_time(value) -> int:
@@ -47,8 +44,8 @@ def _normalize_config_data(
 
     travel_times = {
         channel: _normalize_travel_time(
-            user_input.get(
-                _travel_time_field(channel),
+            user_input.get(_channel_section_field(channel), {}).get(
+                "travel_time",
                 current_travel_times.get(channel, DEFAULT_TRAVEL_TIME),
             )
         )
@@ -56,8 +53,8 @@ def _normalize_config_data(
     }
     enable_set_position = {
         channel: bool(
-            user_input.get(
-                _enable_set_position_field(channel),
+            user_input.get(_channel_section_field(channel), {}).get(
+                "allow_set_position",
                 current_enable_set_position.get(channel, default_enable_set_position)
                 if isinstance(current_enable_set_position, dict)
                 else default_enable_set_position,
@@ -121,22 +118,28 @@ def _build_schema(
             if isinstance(enable_set_position, dict)
             else bool(enable_set_position)
         )
-        schema_fields[
-            vol.Optional(
-                _enable_set_position_field(channel),
-                default=enable_default,
-            )
-        ] = selector.BooleanSelector()
-        schema_fields[
-            vol.Optional(
-                _travel_time_field(channel),
-                default=travel_times.get(channel, DEFAULT_TRAVEL_TIME),
-            )
-        ] = selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=1,
-                max=3600,
-                mode=selector.NumberSelectorMode.BOX,
+        travel_time_default = travel_times.get(channel, DEFAULT_TRAVEL_TIME)
+        schema_fields[vol.Optional(_channel_section_field(channel), default={})] = (
+            section(
+                vol.Schema(
+                    {
+                        vol.Optional(
+                            "allow_set_position",
+                            default=enable_default,
+                        ): selector.BooleanSelector(),
+                        vol.Optional(
+                            "travel_time",
+                            default=travel_time_default,
+                        ): selector.NumberSelector(
+                            selector.NumberSelectorConfig(
+                                min=1,
+                                max=3600,
+                                mode=selector.NumberSelectorMode.BOX,
+                            )
+                        ),
+                    }
+                ),
+                {"collapsed": False},
             )
         )
 
