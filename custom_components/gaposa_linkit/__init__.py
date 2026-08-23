@@ -108,7 +108,9 @@ class GaposaLinkItHub(ABC):
     async def send_command(self, bank: int, channel: int, command: int) -> str | None:
         """Send a command to the hub and return the reply (if any)."""
 
-    async def _read_available_bytes(self, reader, *, max_reads: int = 5) -> bytes:
+    async def _read_available_bytes(
+        self, reader: asyncio.StreamReader, *, max_reads: int = 5
+    ) -> bytes:
         """Read immediately available bytes without blocking for long."""
         chunks: list[bytes] = []
         for _ in range(max_reads):
@@ -123,7 +125,7 @@ class GaposaLinkItHub(ABC):
                 break
         return b"".join(chunks)
 
-    async def _read_reply(self, reader, *, source: str) -> str | None:
+    async def _read_reply(self, reader: asyncio.StreamReader, *, source: str) -> str | None:
         """Read the reply and log partial bytes when the initial read times out."""
         try:
             data = await asyncio.wait_for(reader.read(1024), timeout=3.0)
