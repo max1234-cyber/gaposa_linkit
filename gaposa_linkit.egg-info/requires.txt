@@ -1,7 +1,0 @@
-
-[dev]
-homeassistant
-pyright
-pytest
-pytest-asyncio
-pytest-split
