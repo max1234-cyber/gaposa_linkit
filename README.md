@@ -2,7 +2,7 @@
 
 [![hacs-custom](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://hacs.xyz/docs/faq/custom_repositories)
 
-An unofficial Home Assistant integration for the **Gaposa LinkIt Hub** that enables local control of motorized roller shades via IP-based serial communication. Control your shades directly without [...]
+An unofficial Home Assistant integration for the **Gaposa LinkIt Hub** that enables local control of motorized roller shades via serial communication. Connect over your local network using an IP-to-Serial adapter, or directly via a USB-to-Serial adapter. Control your shades directly without [...]
 
 ## ⚠️ Important: LinkIt Hub Only
 
@@ -10,9 +10,10 @@ An unofficial Home Assistant integration for the **Gaposa LinkIt Hub** that enab
 
 ## Features
 
-- **Local Control**: Communicate directly with your Gaposa LinkIt Hub over your local network using IP-based serial adapters
+- **Local Control**: Communicate directly with your Gaposa LinkIt Hub over your local network using IP-based serial adapters, or via a directly attached USB-to-Serial adapter
 - **Multiple Shades**: Support for up to 24 channels (3 banks × 8 channels)
 - **Simple Configuration**: Easy-to-use config flow for setup and reconfiguration
+- **Flexible Connectivity**: Choose between IP (network) or USB (direct) connection during setup
 - **No Cloud Dependency**: All communication happens locally on your network
 - **Cover Platform**: Full support for Home Assistant's cover entities (open, close, stop)
 - **Optimistic State**: Instant feedback in the UI with optimistic state updates
@@ -21,11 +22,14 @@ An unofficial Home Assistant integration for the **Gaposa LinkIt Hub** that enab
 
 This integration requires:
 - A **Gaposa LinkIt Hub** (NOT the Rollapp Hub - must have RJ9 serial port)
-- An **IP-to-Serial adapter** for network communication
-  - **Tested with**: Global Caché ITach IP2SL
-  - Your adapter must be configured according to the [Gaposa LinkIt documentation](https://www.gaposa.it/eng/linkit/)
+- A **serial adapter** to connect the hub to Home Assistant:
+  - **IP-to-Serial adapter** for network communication
+    - **Tested with**: Global Caché ITach IP2SL
+    - Your adapter must be configured according to the [Gaposa LinkIt documentation](https://www.gaposa.it/eng/linkit/)
+  - **USB-to-Serial adapter** for direct connection to your Home Assistant host
+    - Any standard USB-to-Serial adapter with the correct serial port exposed (e.g. `/dev/ttyUSB0` on Linux, `COM3` on Windows)
 - **Home Assistant 2025.1.0** or later
-- Local network access to the IP-to-Serial adapter
+- For IP mode: local network access to the IP-to-Serial adapter
 
 ## Installation
 
@@ -95,11 +99,14 @@ Before configuring the integration, you need to identify which channels correspo
 
 1. In Home Assistant, go to **Settings** → **Devices & Services** → **Integrations**
 2. Click **Create Integration** and search for "Gaposa LinkIt Hub"
-3. Enter the following details:
-   - **Hub IP Address or Hostname**: The IP address of your serial adapter (e.g., `192.168.1.100`)
-   - **Port**: The port number (default: `4999`)
-   - **Channels**: Select the channel numbers for your shades (1-24)
-4. Click **Submit**
+3. Select your **Connection Type**:
+   - **IP** – for network-attached IP-to-Serial adapters (e.g. Global Caché iTach IP2SL)
+   - **USB** – for a USB-to-Serial adapter directly connected to your Home Assistant host
+4. Enter the connection-specific details:
+   - *IP mode*: **Hub IP Address or Hostname** and **Port** (default: `4999`)
+   - *USB mode*: **Serial Port** path (e.g. `/dev/ttyUSB0` on Linux, `COM3` on Windows) and **Baud Rate** (default: `9600`)
+5. Select the **Channels** for your shades (1–24)
+6. Click **Submit**
 
 ### Reconfiguration
 
@@ -147,7 +154,8 @@ Ensure your IP-to-Serial adapter is properly configured according to the [Gaposa
 
 ### Limitations
 
-- **IP-based communication only**: USB-to-serial adapter support is planned for a future release
+- **IP-based communication**: Connect via a network IP-to-Serial adapter (e.g. Global Caché iTach IP2SL)
+- **USB-based communication**: Connect via a USB-to-Serial adapter directly attached to your Home Assistant host
 - **Read-only feedback**: Current shade position is not reported by the LinkIt Hub; state is optimistically assumed after commands are sent
 
 ## Troubleshooting

@@ -3,7 +3,7 @@
   "name": "Gaposa LinkIt Hub",
   "codeowners": ["@max1234-cyber"],
   "config_flow": true,
-  "dependencies": [],
+  "requirements": ["pyserial-asyncio==0.6"],
   "documentation": "https://github.com/max1234-cyber/gaposa_linkit/blob/main/README.md",
   "integration_type": "hub",
   "iot_class": "local_push",
