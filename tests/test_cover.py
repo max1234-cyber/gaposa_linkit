@@ -1,16 +1,21 @@
 """Tests for the Gaposa cover platform."""
+import asyncio
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
+from unittest.mock import call
+from unittest.mock import patch
 
 import pytest
 from homeassistant.components.cover import CoverEntityFeature
-from homeassistant.const import CONF_HOST
-from homeassistant.const import CONF_PORT
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from custom_components.gaposa_linkit.const import CMD_DOWN
 from custom_components.gaposa_linkit.const import CMD_STOP
 from custom_components.gaposa_linkit.const import CMD_UP
+from custom_components.gaposa_linkit.const import CONF_ENABLE_SET_POSITION
+from custom_components.gaposa_linkit.const import CONF_TRAVEL_TIMES
+from custom_components.gaposa_linkit.const import get_config_update_signal
 
 
 @pytest.fixture
@@ -21,25 +26,35 @@ async def mock_hub():
     return hub
 
 
-@pytest.fixture
-def mock_config_entry():
-    """Create a mock config entry."""
-    entry = MagicMock()
-    entry.entry_id = "test_entry_id"
-    entry.data = {
-        CONF_HOST: "192.168.1.100",
-        CONF_PORT: 4999,
-        "channels": ["1", "2", "3"],
-    }
-    return entry
+def _make_cover(
+    mock_hub,
+    *,
+    travel_time: int = 60,
+    enable_set_position: bool = True,
+):
+    from custom_components.gaposa_linkit.cover import GaposaCover
+
+    return GaposaCover(
+        mock_hub,
+        "test_entry_id",
+        1,
+        0x00,
+        1,
+        travel_time=travel_time,
+        enable_set_position=enable_set_position,
+    )
+
+
+async def _drain_background_tasks():
+    await asyncio.sleep(0)
+    await asyncio.sleep(0)
+    await asyncio.sleep(0)
 
 
 @pytest.mark.asyncio
-async def test_cover_initialization(hass: HomeAssistant, mock_hub, mock_config_entry):
+async def test_cover_initialization(mock_hub):
     """Test cover entity initialization."""
-    from custom_components.gaposa_linkit.cover import GaposaCover
-
-    cover = GaposaCover(mock_hub, mock_config_entry.entry_id, 1, 0x00, 1)
+    cover = _make_cover(mock_hub)
 
     assert cover._hub == mock_hub
     assert cover._bank == 0x00
@@ -47,128 +62,210 @@ async def test_cover_initialization(hass: HomeAssistant, mock_hub, mock_config_e
     assert cover._attr_unique_id == "test_entry_id_channel_1"
     assert cover._attr_name == "Gaposa Shade Channel 1"
     assert cover._attr_is_closed is None
+    assert cover.current_cover_position == 0
 
 
 @pytest.mark.asyncio
-async def test_cover_supported_features(hass: HomeAssistant, mock_hub, mock_config_entry):
+async def test_cover_supported_features_toggle(mock_hub):
     """Test cover supported features."""
-    from custom_components.gaposa_linkit.cover import GaposaCover
+    cover = _make_cover(mock_hub)
+    assert cover.supported_features == (
+        CoverEntityFeature.OPEN
+        | CoverEntityFeature.CLOSE
+        | CoverEntityFeature.STOP
+        | CoverEntityFeature.SET_POSITION
+    )
 
-    cover = GaposaCover(mock_hub, mock_config_entry.entry_id, 1, 0x00, 1)
-
-    assert cover._attr_supported_features == (
+    disabled_cover = _make_cover(mock_hub, enable_set_position=False)
+    assert disabled_cover.supported_features == (
         CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE | CoverEntityFeature.STOP
     )
 
 
 @pytest.mark.asyncio
-async def test_cover_open(hass: HomeAssistant, mock_hub, mock_config_entry):
-    """Test opening the cover."""
-    from custom_components.gaposa_linkit.cover import GaposaCover
-
-    cover = GaposaCover(mock_hub, mock_config_entry.entry_id, 1, 0x00, 1)
+async def test_cover_open_close_and_stop_commands(mock_hub):
+    """Test opening, closing, and stopping the cover."""
+    cover = _make_cover(mock_hub)
     cover.async_write_ha_state = MagicMock()
 
     await cover.async_open_cover()
-
-    mock_hub.send_command.assert_called_once_with(0x00, 1, CMD_UP)
-    assert cover._attr_is_closed is False
-    cover.async_write_ha_state.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_cover_close(hass: HomeAssistant, mock_hub, mock_config_entry):
-    """Test closing the cover."""
-    from custom_components.gaposa_linkit.cover import GaposaCover
-
-    cover = GaposaCover(mock_hub, mock_config_entry.entry_id, 1, 0x00, 1)
-    cover.async_write_ha_state = MagicMock()
-
+    await cover.async_stop_cover()
     await cover.async_close_cover()
 
-    mock_hub.send_command.assert_called_once_with(0x00, 1, CMD_DOWN)
+    mock_hub.send_command.assert_has_calls(
+        [
+            call(0x00, 1, CMD_UP),
+            call(0x00, 1, CMD_STOP),
+            call(0x00, 1, CMD_DOWN),
+        ]
+    )
+    assert cover.is_closing is True
+    await cover.async_will_remove_from_hass()
+
+
+@pytest.mark.asyncio
+async def test_cover_stop_freezes_intermediate_position(mock_hub):
+    """Test stopping the cover at its current calculated position."""
+    clock = {"now": 0.0}
+
+    with patch(
+        "custom_components.gaposa_linkit.cover.monotonic",
+        side_effect=lambda: clock["now"],
+    ):
+        cover = _make_cover(mock_hub, travel_time=60)
+        cover.async_write_ha_state = MagicMock()
+
+        await cover.async_open_cover()
+        clock["now"] = 30.0
+        await cover.async_stop_cover()
+
+    assert cover.current_cover_position == 50
+    assert cover.is_opening is False
+    assert cover.is_closing is False
+    assert cover._attr_is_closed is False
+
+
+@pytest.mark.asyncio
+async def test_cover_background_timer_updates_during_motion(mock_hub):
+    """Test periodic position updates while the cover is moving."""
+    clock = {"now": 0.0}
+    sleep_calls: list[float] = []
+    real_sleep = asyncio.sleep
+
+    async def fake_sleep(delay: float):
+        sleep_calls.append(delay)
+        clock["now"] += delay
+        await real_sleep(0)
+
+    with patch(
+        "custom_components.gaposa_linkit.cover.monotonic",
+        side_effect=lambda: clock["now"],
+    ), patch("custom_components.gaposa_linkit.cover.sleep", new=fake_sleep):
+        cover = _make_cover(mock_hub, travel_time=2)
+        cover.async_write_ha_state = MagicMock()
+
+        await cover.async_open_cover()
+        await _drain_background_tasks()
+
+    assert sleep_calls == [1.0, 1.0]
+    assert cover.current_cover_position == 100
+    assert cover.is_opening is False
+    assert cover.async_write_ha_state.call_count >= 3
+
+
+@pytest.mark.asyncio
+async def test_cover_set_position_auto_stops_when_enabled(mock_hub):
+    """Test set position issues an automatic stop at the requested position."""
+    clock = {"now": 0.0}
+    real_sleep = asyncio.sleep
+
+    async def fake_sleep(delay: float):
+        clock["now"] += delay
+        await real_sleep(0)
+
+    with patch(
+        "custom_components.gaposa_linkit.cover.monotonic",
+        side_effect=lambda: clock["now"],
+    ), patch("custom_components.gaposa_linkit.cover.sleep", new=fake_sleep):
+        cover = _make_cover(mock_hub, travel_time=4)
+        cover.async_write_ha_state = MagicMock()
+
+        await cover.async_set_cover_position(position=50)
+        await _drain_background_tasks()
+
+    mock_hub.send_command.assert_has_calls(
+        [
+            call(0x00, 1, CMD_UP),
+            call(0x00, 1, CMD_STOP),
+        ]
+    )
+    assert cover.current_cover_position == 50
+    assert cover.is_opening is False
+
+
+@pytest.mark.asyncio
+async def test_cover_multiple_commands_in_quick_succession(mock_hub):
+    """Test a new command recalculates motion from the current position."""
+    clock = {"now": 0.0}
+
+    with patch(
+        "custom_components.gaposa_linkit.cover.monotonic",
+        side_effect=lambda: clock["now"],
+    ):
+        cover = _make_cover(mock_hub, travel_time=2)
+        cover.async_write_ha_state = MagicMock()
+
+        await cover.async_open_cover()
+        clock["now"] = 1.0
+        await cover.async_close_cover()
+
+        assert cover.current_cover_position == 50
+        assert cover.is_closing is True
+        await cover.async_will_remove_from_hass()
+
+    mock_hub.send_command.assert_has_calls(
+        [
+            call(0x00, 1, CMD_UP),
+            call(0x00, 1, CMD_DOWN),
+        ]
+    )
+
+
+@pytest.mark.asyncio
+async def test_cover_config_update_changes_travel_time_and_features(
+    hass: HomeAssistant, mock_hub
+):
+    """Test config updates are applied in-place without recreating the entity."""
+    cover = _make_cover(mock_hub, travel_time=60)
+    cover.hass = hass
+    cover.async_write_ha_state = MagicMock()
+
+    await cover.async_added_to_hass()
+
+    async_dispatcher_send(
+        hass,
+        get_config_update_signal("test_entry_id"),
+        {
+            CONF_ENABLE_SET_POSITION: False,
+            CONF_TRAVEL_TIMES: {"1": 120},
+        },
+    )
+
+    assert cover._travel_time == 120
+    assert cover.supported_features == (
+        CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE | CoverEntityFeature.STOP
+    )
+
+    await cover.async_will_remove_from_hass()
+
+
+@pytest.mark.asyncio
+async def test_cover_added_to_hass_defaults_closed(
+    hass: HomeAssistant, mock_hub
+):
+    """Test cover defaults to closed when added to hass."""
+    cover = _make_cover(mock_hub)
+    cover.hass = hass
+    cover.async_write_ha_state = MagicMock()
+
+    await cover.async_added_to_hass()
+
     assert cover._attr_is_closed is True
     cover.async_write_ha_state.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_cover_stop(hass: HomeAssistant, mock_hub, mock_config_entry):
-    """Test stopping the cover."""
-    from custom_components.gaposa_linkit.cover import GaposaCover
-
-    cover = GaposaCover(mock_hub, mock_config_entry.entry_id, 1, 0x00, 1)
-    cover.async_write_ha_state = MagicMock()
-
-    await cover.async_stop_cover()
-
-    mock_hub.send_command.assert_called_once_with(0x00, 1, CMD_STOP)
-    assert cover._attr_is_closed is False
-    cover.async_write_ha_state.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_cover_extra_state_attributes(hass: HomeAssistant, mock_hub, mock_config_entry):
-    """Test extra state attributes."""
-    from custom_components.gaposa_linkit.cover import GaposaCover
-
-    cover = GaposaCover(mock_hub, mock_config_entry.entry_id, 1, 0x00, 1)
-    cover._attr_extra_state_attributes = {"last_hub_reply": "Test Reply"}
-
-    attributes = cover.extra_state_attributes
-    assert attributes["last_hub_reply"] == "Test Reply"
-
-
-@pytest.mark.asyncio
-async def test_cover_open_with_reply(hass: HomeAssistant, mock_config_entry):
-    """Test opening cover with hub reply."""
-    from custom_components.gaposa_linkit.cover import GaposaCover
-
-    mock_hub = AsyncMock()
-    mock_hub.send_command = AsyncMock(return_value="SUCCESS")
-
-    cover = GaposaCover(mock_hub, mock_config_entry.entry_id, 1, 0x00, 1)
+async def test_cover_timer_cleanup_on_entity_unload(mock_hub):
+    """Test the background timer is cancelled when the entity is removed."""
+    cover = _make_cover(mock_hub, travel_time=60)
     cover.async_write_ha_state = MagicMock()
 
     await cover.async_open_cover()
 
-    assert cover._attr_extra_state_attributes["last_hub_reply"] == "SUCCESS"
+    motion_task = cover._motion_task
+    assert motion_task is not None
 
+    await cover.async_will_remove_from_hass()
 
-@pytest.mark.asyncio
-async def test_cover_channel_bank_mapping():
-    """Test channel to bank mapping."""
-    from custom_components.gaposa_linkit.cover import GaposaCover
-
-    mock_hub = AsyncMock()
-
-    # Channels 1-8 should be bank 0x00
-    cover1 = GaposaCover(mock_hub, "test", 1, 0x00, 1)
-    assert cover1._bank == 0x00
-    assert cover1._bank_channel == 1
-
-    # Channels 9-16 should be bank 0x01
-    cover9 = GaposaCover(mock_hub, "test", 9, 0x01, 1)
-    assert cover9._bank == 0x01
-    assert cover9._bank_channel == 1
-
-    # Channels 17-24 should be bank 0x02
-    cover17 = GaposaCover(mock_hub, "test", 17, 0x02, 1)
-    assert cover17._bank == 0x02
-    assert cover17._bank_channel == 1
-
-
-@pytest.mark.asyncio
-async def test_cover_added_to_hass(hass: HomeAssistant, mock_hub, mock_config_entry):
-    """Test cover when added to hass."""
-    from custom_components.gaposa_linkit.cover import GaposaCover
-
-    cover = GaposaCover(mock_hub, mock_config_entry.entry_id, 1, 0x00, 1)
-    cover.async_write_ha_state = MagicMock()
-    cover.hass = hass
-
-    # Simulate added to hass
-    await cover.async_added_to_hass()
-
-    # Should default to closed state
-    assert cover._attr_is_closed is True
-    cover.async_write_ha_state.assert_called_once()
+    assert cover._motion_task is None
+    assert motion_task.cancelled() or motion_task.done()

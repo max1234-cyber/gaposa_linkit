@@ -1,32 +1,19 @@
-"""Tests for the Gaposa LinkIt integration."""
-from unittest.mock import AsyncMock
+"""Tests for the Gaposa LinkIt config flow."""
 from unittest.mock import MagicMock
-from unittest.mock import patch
 
 import pytest
 from homeassistant.const import CONF_HOST
 from homeassistant.const import CONF_PORT
 from homeassistant.core import HomeAssistant
 
-
-@pytest.fixture
-def mock_gaposa_hub():
-    """Create a mock Gaposa hub."""
-    with patch("custom_components.gaposa_linkit.GaposaLinkItHub") as mock:
-        instance = AsyncMock()
-        instance.send_command = AsyncMock(return_value="OK")
-        mock.return_value = instance
-        yield mock
+from custom_components.gaposa_linkit.const import CONF_CHANNELS
+from custom_components.gaposa_linkit.const import CONF_ENABLE_SET_POSITION
+from custom_components.gaposa_linkit.const import CONF_TRAVEL_TIMES
+from custom_components.gaposa_linkit.const import DEFAULT_TRAVEL_TIME
 
 
-@pytest.fixture
-def mock_setup_entry():
-    """Mock the setup entry."""
-    with patch(
-        "custom_components.gaposa_linkit.async_setup_entry", new_callable=AsyncMock
-    ) as mock:
-        mock.return_value = True
-        yield mock
+def _schema_keys(result: dict) -> set[str]:
+    return {key.schema for key in result["data_schema"].schema}
 
 
 @pytest.mark.asyncio
@@ -37,12 +24,16 @@ async def test_config_flow_user_step(hass: HomeAssistant):
     flow = GaposaLinkItConfigFlow()
     flow.hass = hass
 
-    # Test showing the form without user input
     result = await flow.async_step_user()
+
     assert result["type"] == "form"
     assert result["step_id"] == "user"
-    assert CONF_HOST in result["data_schema"].schema
-    assert CONF_PORT in result["data_schema"].schema
+    assert _schema_keys(result) == {
+        CONF_HOST,
+        CONF_PORT,
+        CONF_CHANNELS,
+        CONF_ENABLE_SET_POSITION,
+    }
 
 
 @pytest.mark.asyncio
@@ -56,13 +47,25 @@ async def test_config_flow_user_step_with_input(hass: HomeAssistant):
     user_input = {
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
-        "channels": ["1", "2", "3"],
+        CONF_CHANNELS: ["1", "2", "3"],
+        CONF_ENABLE_SET_POSITION: False,
     }
 
     result = await flow.async_step_user(user_input=user_input)
+
     assert result["type"] == "create_entry"
     assert result["title"] == "Gaposa LinkIt (192.168.1.100)"
-    assert result["data"] == user_input
+    assert result["data"] == {
+        CONF_HOST: "192.168.1.100",
+        CONF_PORT: 4999,
+        CONF_CHANNELS: ["1", "2", "3"],
+        CONF_ENABLE_SET_POSITION: False,
+        CONF_TRAVEL_TIMES: {
+            "1": DEFAULT_TRAVEL_TIME,
+            "2": DEFAULT_TRAVEL_TIME,
+            "3": DEFAULT_TRAVEL_TIME,
+        },
+    }
 
 
 @pytest.mark.asyncio
@@ -75,12 +78,16 @@ async def test_config_flow_user_step_with_default_port(hass: HomeAssistant):
 
     user_input = {
         CONF_HOST: "192.168.1.100",
-        "channels": [],
+        CONF_CHANNELS: [],
     }
 
     result = await flow.async_step_user(user_input=user_input)
+
     assert result["type"] == "create_entry"
     assert result["data"][CONF_HOST] == "192.168.1.100"
+    assert result["data"][CONF_PORT] == 4999
+    assert result["data"][CONF_ENABLE_SET_POSITION] is True
+    assert result["data"][CONF_TRAVEL_TIMES] == {}
 
 
 @pytest.mark.asyncio
@@ -88,52 +95,68 @@ async def test_options_flow_init(hass: HomeAssistant):
     """Test the init step of the options flow."""
     from custom_components.gaposa_linkit.config_flow import GaposaLinkItOptionsFlowHandler
 
-    flow = GaposaLinkItOptionsFlowHandler()
-    flow.hass = hass
-
-    # Mock the config_entry
-    mock_config_entry = MagicMock()
-    mock_config_entry.entry_id = "test_entry_id"
-    mock_config_entry.data = {
+    config_entry = MagicMock()
+    config_entry.data = {
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
-        "channels": ["1", "2"],
+        CONF_CHANNELS: ["1", "2"],
+        CONF_ENABLE_SET_POSITION: True,
+        CONF_TRAVEL_TIMES: {"1": 30, "2": 45},
     }
-    flow.handler = mock_config_entry.entry_id
-    hass.config_entries.async_get_known_entry = MagicMock(return_value=mock_config_entry)
+    flow = GaposaLinkItOptionsFlowHandler()
+    flow._config_entry = config_entry
+    flow.hass = hass
 
     result = await flow.async_step_init()
+
     assert result["type"] == "form"
     assert result["step_id"] == "init"
+    assert _schema_keys(result) == {
+        CONF_HOST,
+        CONF_PORT,
+        CONF_CHANNELS,
+        CONF_ENABLE_SET_POSITION,
+        "travel_time_1",
+        "travel_time_2",
+    }
 
 
 @pytest.mark.asyncio
 async def test_options_flow_init_with_input(hass: HomeAssistant):
-    """Test the init step with input."""
+    """Test the init step with updated travel times and toggle."""
     from custom_components.gaposa_linkit.config_flow import GaposaLinkItOptionsFlowHandler
 
-    flow = GaposaLinkItOptionsFlowHandler()
-    flow.hass = hass
-
-    # Mock the config_entry
-    mock_config_entry = MagicMock()
-    mock_config_entry.entry_id = "test_entry_id"
-    mock_config_entry.data = {
+    config_entry = MagicMock()
+    config_entry.data = {
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
-        "channels": ["1", "2"],
+        CONF_CHANNELS: ["1", "2"],
+        CONF_ENABLE_SET_POSITION: True,
+        CONF_TRAVEL_TIMES: {"1": 60, "2": 60},
     }
-    flow.handler = mock_config_entry.entry_id
-    hass.config_entries.async_get_known_entry = MagicMock(return_value=mock_config_entry)
-
-    # Mock the async_update_entry method
-    hass.config_entries.async_update_entry = MagicMock()
+    flow = GaposaLinkItOptionsFlowHandler()
+    flow._config_entry = config_entry
+    flow.hass = hass
 
     user_input = {
         CONF_HOST: "192.168.1.101",
         CONF_PORT: 5000,
-        "channels": ["1", "2", "3"],
+        CONF_CHANNELS: ["1", "2", "3"],
+        CONF_ENABLE_SET_POSITION: False,
+        "travel_time_1": 30,
+        "travel_time_2": 45,
     }
 
     result = await flow.async_step_init(user_input=user_input)
+
     assert result["type"] == "create_entry"
+    hass.config_entries.async_update_entry.assert_called_once_with(
+        config_entry,
+        data={
+            CONF_HOST: "192.168.1.101",
+            CONF_PORT: 5000,
+            CONF_CHANNELS: ["1", "2", "3"],
+            CONF_ENABLE_SET_POSITION: False,
+            CONF_TRAVEL_TIMES: {"1": 30, "2": 45, "3": DEFAULT_TRAVEL_TIME},
+        },
+    )
