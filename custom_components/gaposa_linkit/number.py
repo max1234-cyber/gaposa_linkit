@@ -29,7 +29,7 @@ async def async_setup_entry(
             GaposaTravelTimeNumber(
                 entry,
                 int(channel),
-                travel_times.get(channel, DEFAULT_TRAVEL_TIME),
+                travel_times.get(str(channel), DEFAULT_TRAVEL_TIME),
                 get_config_update_signal(entry.entry_id),
             )
             for channel in entry.data.get(CONF_CHANNELS, [])
