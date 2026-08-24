@@ -15,9 +15,11 @@ from custom_components.gaposa_linkit.const import CMD_DOWN
 from custom_components.gaposa_linkit.const import CMD_UP
 from custom_components.gaposa_linkit.const import CONF_CONNECTION_TYPE
 from custom_components.gaposa_linkit.const import CONF_SERIAL_PORT
+from custom_components.gaposa_linkit.const import CONF_TIMEOUT
 from custom_components.gaposa_linkit.const import CONNECTION_TYPE_IP
 from custom_components.gaposa_linkit.const import CONNECTION_TYPE_USB
 from custom_components.gaposa_linkit.const import DEFAULT_BAUD_RATE
+from custom_components.gaposa_linkit.const import DEFAULT_TIMEOUT
 
 # ---------------------------------------------------------------------------
 # IP hub (existing)
@@ -30,6 +32,7 @@ async def test_hub_initialization():
     hub = GaposaLinkItHub("192.168.1.100", 4999)
     assert hub.host == "192.168.1.100"
     assert hub.port == 4999
+    assert hub.timeout == DEFAULT_TIMEOUT
     assert hub._lock is not None
 
 
@@ -229,6 +232,20 @@ async def test_hub_send_command_timeout_logs_warning(caplog):
         mock_reader.readuntil.assert_called_once_with(b"}")
 
 
+def test_create_hub_ip_uses_custom_timeout():
+    """create_hub applies a custom timeout to IP hubs."""
+    hub = create_hub(
+        {
+            CONF_CONNECTION_TYPE: CONNECTION_TYPE_IP,
+            CONF_HOST: "192.168.1.100",
+            CONF_PORT: 4999,
+            CONF_TIMEOUT: 7,
+        }
+    )
+    assert isinstance(hub, GaposaLinkItIPHub)
+    assert hub.timeout == 7.0
+
+
 @pytest.mark.asyncio
 async def test_usb_hub_send_command_checksum():
     """Test USB hub command checksum calculation."""
@@ -297,6 +314,7 @@ def test_create_hub_ip():
     assert isinstance(hub, GaposaLinkItIPHub)
     assert hub.host == "192.168.1.100"
     assert hub.port == 4999
+    assert hub.timeout == DEFAULT_TIMEOUT
 
 
 def test_create_hub_usb():
@@ -305,14 +323,17 @@ def test_create_hub_usb():
         {
             CONF_CONNECTION_TYPE: CONNECTION_TYPE_USB,
             CONF_SERIAL_PORT: "/dev/ttyUSB0",
+            CONF_TIMEOUT: 8,
         }
     )
     assert isinstance(hub, GaposaLinkItUSBHub)
     assert hub.serial_port == "/dev/ttyUSB0"
     assert hub.baud_rate == DEFAULT_BAUD_RATE
+    assert hub.timeout == 8.0
 
 
 def test_create_hub_defaults_to_ip():
     """create_hub defaults to IP when connection type is absent."""
     hub = create_hub({CONF_HOST: "192.168.1.100"})
     assert isinstance(hub, GaposaLinkItIPHub)
+    assert hub.timeout == DEFAULT_TIMEOUT

@@ -103,10 +103,20 @@ Before configuring the integration, you need to identify which channels correspo
    - **IP** – for network-attached IP-to-Serial adapters (e.g. Global Caché iTach IP2SL)
    - **USB** – for a USB-to-Serial adapter directly connected to your Home Assistant host
 4. Enter the connection-specific details:
-   - *IP mode*: **Hub IP Address or Hostname** and **Port** (default: `4999`)
-   - *USB mode*: **Serial Port** path (e.g. `/dev/ttyUSB0` on Linux, `COM3` on Windows)
+   - *IP mode*: **Hub IP Address or Hostname**, **Port** (default: `4999`), and **Timeout** (default: `3` seconds)
+   - *USB mode*: **Serial Port** path (e.g. `/dev/ttyUSB0` on Linux, `COM3` on Windows) and **Timeout** (default: `3` seconds)
 5. Select the **Channels** for your shades (1–24)
 6. Click **Submit**
+
+### Finding Your USB Serial Port
+
+If you are using a USB-to-Serial adapter, plug it into the Home Assistant host first and then identify the exposed serial device:
+
+- **Home Assistant UI**: Go to **Settings** → **System** → **Hardware** → **All Hardware** and look for a newly detected serial device such as `/dev/ttyUSB0` or `/dev/ttyACM0`
+- **Linux shell**: Run `ls /dev/ttyUSB* /dev/ttyACM*` before and after plugging in the adapter to see which device appeared
+- **Linux kernel log**: Run `dmesg | tail` right after connecting the adapter to see which serial port was assigned
+
+Use the detected device path as the **Serial Port** value when configuring the integration.
 
 ### Reconfiguration
 

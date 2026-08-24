@@ -1,9 +1,11 @@
 DOMAIN = "gaposa_linkit"
 DEFAULT_PORT = 4999  # Standard iTach TCP port for serial
 DEFAULT_BAUD_RATE = 9600  # Fixed baud rate required by the Gaposa LinkIt Hub
+DEFAULT_TIMEOUT = 3.0
 DEFAULT_TRAVEL_TIME = 60
 CONF_HOST = "host"
 CONF_PORT = "port"
+CONF_TIMEOUT = "timeout"
 CONF_CHANNELS = "channels"
 CONF_ENABLE_SET_POSITION = "enable_set_position"
 CONF_TRAVEL_TIMES = "travel_times"

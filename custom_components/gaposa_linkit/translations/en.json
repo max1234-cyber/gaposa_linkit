@@ -14,6 +14,7 @@
         "data": {
           "host": "Hub IP Address or Hostname",
           "port": "Port",
+          "timeout": "Timeout (seconds)",
           "channels": "Channels"
         }
       },
@@ -22,6 +23,7 @@
         "description": "Enter the serial port path for your USB-to-Serial adapter (e.g. /dev/ttyUSB0 on Linux or COM3 on Windows)",
         "data": {
           "serial_port": "Serial Port",
+          "timeout": "Timeout (seconds)",
           "channels": "Channels"
         }
       }
@@ -42,6 +44,7 @@
         "data": {
           "host": "Hub IP Address or Hostname",
           "port": "Port",
+          "timeout": "Timeout (seconds)",
           "channels": "Channels"
         }
       },
@@ -50,6 +53,7 @@
         "description": "Update the serial port path for your USB-to-Serial adapter",
         "data": {
           "serial_port": "Serial Port",
+          "timeout": "Timeout (seconds)",
           "channels": "Channels"
         }
       }

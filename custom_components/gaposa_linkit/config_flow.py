@@ -11,9 +11,11 @@ from homeassistant.helpers import selector
 from .const import CONF_CHANNELS
 from .const import CONF_CONNECTION_TYPE
 from .const import CONF_SERIAL_PORT
+from .const import CONF_TIMEOUT
 from .const import CONNECTION_TYPE_IP
 from .const import CONNECTION_TYPE_USB
 from .const import DEFAULT_PORT
+from .const import DEFAULT_TIMEOUT
 from .const import DOMAIN
 
 # ---------------------------------------------------------------------------
@@ -38,6 +40,7 @@ def _normalize_config_data(
     else:
         data[CONF_HOST] = user_input[CONF_HOST]
         data[CONF_PORT] = int(user_input.get(CONF_PORT, DEFAULT_PORT))
+    data[CONF_TIMEOUT] = float(user_input.get(CONF_TIMEOUT, DEFAULT_TIMEOUT))
 
     return data
 
@@ -72,6 +75,7 @@ def _build_ip_schema(
     *,
     host: str = "",
     port: int = DEFAULT_PORT,
+    timeout: float = DEFAULT_TIMEOUT,
     channels: list[str] | None = None,
 ) -> vol.Schema:
     channels = channels or []
@@ -84,6 +88,13 @@ def _build_ip_schema(
                 selector.NumberSelectorConfig(
                     min=1,
                     max=65535,
+                    mode=selector.NumberSelectorMode.BOX,
+                )
+            ),
+            vol.Optional(CONF_TIMEOUT, default=timeout): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1,
+                    max=60,
                     mode=selector.NumberSelectorMode.BOX,
                 )
             ),
@@ -101,6 +112,7 @@ def _build_ip_schema(
 def _build_usb_schema(
     *,
     serial_port: str = "",
+    timeout: float = DEFAULT_TIMEOUT,
     channels: list[str] | None = None,
 ) -> vol.Schema:
     channels = channels or []
@@ -108,6 +120,13 @@ def _build_usb_schema(
         {
             vol.Required(CONF_SERIAL_PORT, default=serial_port): selector.TextSelector(
                 selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+            ),
+            vol.Optional(CONF_TIMEOUT, default=timeout): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1,
+                    max=60,
+                    mode=selector.NumberSelectorMode.BOX,
+                )
             ),
             vol.Optional(CONF_CHANNELS, default=channels): selector.SelectSelector(
                 selector.SelectSelectorConfig(
@@ -217,6 +236,7 @@ class GaposaLinkItOptionsFlowHandler(config_entries.OptionsFlow):
 
         current_host = self.config_entry.data.get(CONF_HOST, "")
         current_port = self.config_entry.data.get(CONF_PORT, DEFAULT_PORT)
+        current_timeout = self.config_entry.data.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)
         current_channels = self.config_entry.data.get(CONF_CHANNELS, [])
 
         return self.async_show_form(
@@ -224,6 +244,7 @@ class GaposaLinkItOptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=_build_ip_schema(
                 host=current_host,
                 port=current_port,
+                timeout=current_timeout,
                 channels=current_channels,
             ),
         )
@@ -239,12 +260,14 @@ class GaposaLinkItOptionsFlowHandler(config_entries.OptionsFlow):
             return self.async_create_entry(title="", data={})
 
         current_serial_port = self.config_entry.data.get(CONF_SERIAL_PORT, "")
+        current_timeout = self.config_entry.data.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)
         current_channels = self.config_entry.data.get(CONF_CHANNELS, [])
 
         return self.async_show_form(
             step_id="usb",
             data_schema=_build_usb_schema(
                 serial_port=current_serial_port,
+                timeout=current_timeout,
                 channels=current_channels,
             ),
         )
