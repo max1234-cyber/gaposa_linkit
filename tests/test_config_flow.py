@@ -9,8 +9,10 @@ from homeassistant.core import HomeAssistant
 from custom_components.gaposa_linkit.const import CONF_CHANNELS
 from custom_components.gaposa_linkit.const import CONF_CONNECTION_TYPE
 from custom_components.gaposa_linkit.const import CONF_SERIAL_PORT
+from custom_components.gaposa_linkit.const import CONF_TIMEOUT
 from custom_components.gaposa_linkit.const import CONNECTION_TYPE_IP
 from custom_components.gaposa_linkit.const import CONNECTION_TYPE_USB
+from custom_components.gaposa_linkit.const import DEFAULT_TIMEOUT
 
 
 def _schema_keys(result: dict) -> set[str]:
@@ -49,7 +51,7 @@ async def test_config_flow_user_step_selects_ip(hass: HomeAssistant):
 
     assert result["type"] == "form"
     assert result["step_id"] == "ip"
-    assert _schema_keys(result) == {CONF_HOST, CONF_PORT, CONF_CHANNELS}
+    assert _schema_keys(result) == {CONF_HOST, CONF_PORT, CONF_TIMEOUT, CONF_CHANNELS}
 
 
 @pytest.mark.asyncio
@@ -64,7 +66,7 @@ async def test_config_flow_user_step_selects_usb(hass: HomeAssistant):
 
     assert result["type"] == "form"
     assert result["step_id"] == "usb"
-    assert _schema_keys(result) == {CONF_SERIAL_PORT, CONF_CHANNELS}
+    assert _schema_keys(result) == {CONF_SERIAL_PORT, CONF_TIMEOUT, CONF_CHANNELS}
 
 
 # ---------------------------------------------------------------------------
@@ -83,6 +85,7 @@ async def test_config_flow_ip_step_with_input(hass: HomeAssistant):
     user_input = {
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
+        CONF_TIMEOUT: 7,
         CONF_CHANNELS: ["1", "2", "3"],
     }
 
@@ -94,6 +97,7 @@ async def test_config_flow_ip_step_with_input(hass: HomeAssistant):
         CONF_CONNECTION_TYPE: CONNECTION_TYPE_IP,
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
+        CONF_TIMEOUT: 7.0,
         CONF_CHANNELS: ["1", "2", "3"],
     }
 
@@ -117,6 +121,7 @@ async def test_config_flow_ip_step_with_default_port(hass: HomeAssistant):
     assert result["data"][CONF_CONNECTION_TYPE] == CONNECTION_TYPE_IP
     assert result["data"][CONF_HOST] == "192.168.1.100"
     assert result["data"][CONF_PORT] == 4999
+    assert result["data"][CONF_TIMEOUT] == DEFAULT_TIMEOUT
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +139,7 @@ async def test_config_flow_usb_step_with_input(hass: HomeAssistant):
 
     user_input = {
         CONF_SERIAL_PORT: "/dev/ttyUSB0",
+        CONF_TIMEOUT: 9,
         CONF_CHANNELS: ["1", "2"],
     }
 
@@ -144,6 +150,7 @@ async def test_config_flow_usb_step_with_input(hass: HomeAssistant):
     assert result["data"] == {
         CONF_CONNECTION_TYPE: CONNECTION_TYPE_USB,
         CONF_SERIAL_PORT: "/dev/ttyUSB0",
+        CONF_TIMEOUT: 9.0,
         CONF_CHANNELS: ["1", "2"],
     }
 
@@ -190,6 +197,7 @@ async def test_options_flow_init(hass: HomeAssistant):
             CONF_CONNECTION_TYPE: CONNECTION_TYPE_IP,
             CONF_HOST: "192.168.1.100",
             CONF_PORT: 4999,
+            CONF_TIMEOUT: DEFAULT_TIMEOUT,
             CONF_CHANNELS: ["1", "2"],
         },
     )
@@ -210,6 +218,7 @@ async def test_options_flow_init_selects_ip(hass: HomeAssistant):
             CONF_CONNECTION_TYPE: CONNECTION_TYPE_IP,
             CONF_HOST: "192.168.1.100",
             CONF_PORT: 4999,
+            CONF_TIMEOUT: DEFAULT_TIMEOUT,
             CONF_CHANNELS: ["1", "2"],
         },
     )
@@ -228,6 +237,7 @@ async def test_options_flow_init_selects_usb(hass: HomeAssistant):
         {
             CONF_CONNECTION_TYPE: CONNECTION_TYPE_USB,
             CONF_SERIAL_PORT: "/dev/ttyUSB0",
+            CONF_TIMEOUT: DEFAULT_TIMEOUT,
             CONF_CHANNELS: ["1"],
         },
     )
@@ -247,6 +257,7 @@ async def test_options_flow_ip_with_input(hass: HomeAssistant):
             CONF_CONNECTION_TYPE: CONNECTION_TYPE_IP,
             CONF_HOST: "192.168.1.100",
             CONF_PORT: 4999,
+            CONF_TIMEOUT: DEFAULT_TIMEOUT,
             CONF_CHANNELS: ["1", "2"],
         },
     )
@@ -254,6 +265,7 @@ async def test_options_flow_ip_with_input(hass: HomeAssistant):
     user_input = {
         CONF_HOST: "192.168.1.101",
         CONF_PORT: 5000,
+        CONF_TIMEOUT: 4,
         CONF_CHANNELS: ["1", "2", "3"],
     }
 
@@ -266,6 +278,7 @@ async def test_options_flow_ip_with_input(hass: HomeAssistant):
             CONF_CONNECTION_TYPE: CONNECTION_TYPE_IP,
             CONF_HOST: "192.168.1.101",
             CONF_PORT: 5000,
+            CONF_TIMEOUT: 4.0,
             CONF_CHANNELS: ["1", "2", "3"],
         },
     )
@@ -279,12 +292,14 @@ async def test_options_flow_usb_with_input(hass: HomeAssistant):
         {
             CONF_CONNECTION_TYPE: CONNECTION_TYPE_USB,
             CONF_SERIAL_PORT: "/dev/ttyUSB0",
+            CONF_TIMEOUT: DEFAULT_TIMEOUT,
             CONF_CHANNELS: ["1"],
         },
     )
 
     user_input = {
         CONF_SERIAL_PORT: "/dev/ttyUSB1",
+        CONF_TIMEOUT: 6,
         CONF_CHANNELS: ["1", "2"],
     }
 
@@ -296,7 +311,7 @@ async def test_options_flow_usb_with_input(hass: HomeAssistant):
         data={
             CONF_CONNECTION_TYPE: CONNECTION_TYPE_USB,
             CONF_SERIAL_PORT: "/dev/ttyUSB1",
+            CONF_TIMEOUT: 6.0,
             CONF_CHANNELS: ["1", "2"],
         },
     )
-

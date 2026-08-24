@@ -10,7 +10,9 @@ from homeassistant.core import HomeAssistant
 
 from custom_components.gaposa_linkit.const import CONF_CHANNELS
 from custom_components.gaposa_linkit.const import CONF_ENABLE_SET_POSITION
+from custom_components.gaposa_linkit.const import CONF_TIMEOUT
 from custom_components.gaposa_linkit.const import CONF_TRAVEL_TIMES
+from custom_components.gaposa_linkit.const import DEFAULT_TIMEOUT
 from custom_components.gaposa_linkit.const import DOMAIN
 
 
@@ -22,6 +24,7 @@ def mock_config_entry():
     entry.data = {
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
+        CONF_TIMEOUT: DEFAULT_TIMEOUT,
         "channels": ["1", "2", "3"],
     }
     entry.async_on_unload = MagicMock(return_value=MagicMock())
@@ -122,6 +125,7 @@ async def test_update_listener_dispatches_cover_setting_changes(
     updated_entry.data = {
         CONF_HOST: "192.168.1.100",
         CONF_PORT: 4999,
+        CONF_TIMEOUT: DEFAULT_TIMEOUT,
         CONF_CHANNELS: ["1", "2", "3"],
         CONF_ENABLE_SET_POSITION: {"1": False, "2": True, "3": True},
         CONF_TRAVEL_TIMES: {"1": 30, "2": 45, "3": 60},
@@ -171,6 +175,7 @@ async def test_setup_entry_with_custom_port(hass: HomeAssistant):
     mock_entry.data = {
         CONF_HOST: "192.168.1.50",
         CONF_PORT: 5555,
+        CONF_TIMEOUT: 4,
         "channels": ["1"],
     }
     mock_entry.add_update_listener = MagicMock(return_value=MagicMock())

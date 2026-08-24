@@ -14,27 +14,31 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from .const import CONF_CHANNELS
 from .const import CONF_CONNECTION_TYPE
 from .const import CONF_SERIAL_PORT
+from .const import CONF_TIMEOUT
 from .const import CONNECTION_TYPE_USB
 from .const import DEFAULT_BAUD_RATE
 from .const import DEFAULT_PORT
+from .const import DEFAULT_TIMEOUT
 from .const import DOMAIN
 from .const import get_config_update_signal
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = ["cover", "number", "switch"]
-HUB_REPLY_TIMEOUT = 5.0
 
 
 def create_hub(data: Mapping[str, Any]) -> "GaposaLinkItHub":
     """Factory: return the correct hub implementation based on connection type."""
+    timeout = float(data.get(CONF_TIMEOUT, DEFAULT_TIMEOUT))
     if data.get(CONF_CONNECTION_TYPE) == CONNECTION_TYPE_USB:
         return GaposaLinkItUSBHub(
             serial_port=data[CONF_SERIAL_PORT],
             baud_rate=DEFAULT_BAUD_RATE,
+            timeout=timeout,
         )
     return GaposaLinkItIPHub(
         host=data[CONF_HOST],
         port=data.get(CONF_PORT, DEFAULT_PORT),
+        timeout=timeout,
     )
 
 
@@ -69,6 +73,8 @@ def _connection_changed(previous: Mapping[str, Any], current: Mapping[str, Any])
             return True
     if previous.get(CONF_PORT, DEFAULT_PORT) != current.get(CONF_PORT, DEFAULT_PORT):
         return True
+    if previous.get(CONF_TIMEOUT, DEFAULT_TIMEOUT) != current.get(CONF_TIMEOUT, DEFAULT_TIMEOUT):
+        return True
     if set(previous.get(CONF_CHANNELS, [])) != set(current.get(CONF_CHANNELS, [])):
         return True
     return False
@@ -97,6 +103,9 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
 class GaposaLinkItHub(ABC):
     """Abstract base class for LinkIt hub communication."""
 
+    def __init__(self, timeout: float = DEFAULT_TIMEOUT) -> None:
+        self.timeout = timeout
+
     def _build_payload(self, bank: int, channel: int, command: int) -> bytes:
         b0 = 0x67
         b1 = bank
@@ -112,12 +121,12 @@ class GaposaLinkItHub(ABC):
     async def _read_reply(self, reader: asyncio.StreamReader, *, source: str) -> str | None:
         """Read a JSON reply terminated by '}' and return the full raw response string."""
         try:
-            data = await asyncio.wait_for(reader.readuntil(b"}"), timeout=HUB_REPLY_TIMEOUT)
+            data = await asyncio.wait_for(reader.readuntil(b"}"), timeout=self.timeout)
         except asyncio.TimeoutError:
             _LOGGER.warning(
                 "Timed out waiting for reply from %s (no response within %.0fs).",
                 source,
-                HUB_REPLY_TIMEOUT,
+                self.timeout,
             )
             return None
         except asyncio.IncompleteReadError as err:
@@ -145,7 +154,8 @@ class GaposaLinkItHub(ABC):
 class GaposaLinkItIPHub(GaposaLinkItHub):
     """Communicate with the LinkIt Hub via an IP-to-Serial adapter (e.g. iTach IP2SL)."""
 
-    def __init__(self, host: str, port: int):
+    def __init__(self, host: str, port: int, timeout: float = DEFAULT_TIMEOUT):
+        super().__init__(timeout)
         self.host = host
         self.port = port
         self._lock = asyncio.Lock()
@@ -157,10 +167,10 @@ class GaposaLinkItIPHub(GaposaLinkItHub):
         reply_str = None
         async with self._lock:
             try:
-                # Open non-blocking TCP socket connection (with a 5-second connection timeout)
+                # Open non-blocking TCP socket connection.
                 reader, writer = await asyncio.wait_for(
                     asyncio.open_connection(self.host, self.port),
-                    timeout=5.0,
+                    timeout=self.timeout,
                 )
 
                 # Send the raw bytes down the wire
@@ -177,7 +187,12 @@ class GaposaLinkItIPHub(GaposaLinkItHub):
                     await writer.wait_closed()
 
             except asyncio.TimeoutError:
-                _LOGGER.error("Timeout: Could not connect to iTach at %s:%s within 5 seconds.", self.host, self.port)
+                _LOGGER.error(
+                    "Timeout: Could not connect to iTach at %s:%s within %.0f seconds.",
+                    self.host,
+                    self.port,
+                    self.timeout,
+                )
             except Exception as err:
                 _LOGGER.error("Error communicating with iTach at %s:%s - %s", self.host, self.port, err)
 
@@ -192,7 +207,13 @@ class GaposaLinkItIPHub(GaposaLinkItHub):
 class GaposaLinkItUSBHub(GaposaLinkItHub):
     """Communicate with the LinkIt Hub via a directly attached USB-to-Serial adapter."""
 
-    def __init__(self, serial_port: str, baud_rate: int = DEFAULT_BAUD_RATE):
+    def __init__(
+        self,
+        serial_port: str,
+        baud_rate: int = DEFAULT_BAUD_RATE,
+        timeout: float = DEFAULT_TIMEOUT,
+    ):
+        super().__init__(timeout)
         self.serial_port = serial_port
         self.baud_rate = baud_rate
         self._lock = asyncio.Lock()
@@ -214,7 +235,7 @@ class GaposaLinkItUSBHub(GaposaLinkItHub):
                         parity="N",
                         stopbits=1,
                     ),
-                    timeout=5.0,
+                    timeout=self.timeout,
                 )
 
                 writer.write(payload)
@@ -231,7 +252,11 @@ class GaposaLinkItUSBHub(GaposaLinkItHub):
                     writer.close()
 
             except asyncio.TimeoutError:
-                _LOGGER.error("Timeout: Could not open USB serial port %s within 5 seconds.", self.serial_port)
+                _LOGGER.error(
+                    "Timeout: Could not open USB serial port %s within %.0f seconds.",
+                    self.serial_port,
+                    self.timeout,
+                )
             except Exception as err:
                 _LOGGER.error("Error communicating via USB serial port %s - %s", self.serial_port, err)
 
