@@ -7,7 +7,6 @@ import pytest
 from homeassistant.const import CONF_HOST
 from homeassistant.const import CONF_PORT
 
-from custom_components.gaposa_linkit import HUB_REPLY_SIZE
 from custom_components.gaposa_linkit import GaposaLinkItHub
 from custom_components.gaposa_linkit import GaposaLinkItIPHub
 from custom_components.gaposa_linkit import GaposaLinkItUSBHub
@@ -41,14 +40,14 @@ async def test_hub_send_command_success():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.readexactly = AsyncMock(return_value=b"\xc3\xa9!")
+    mock_reader.readuntil = AsyncMock(return_value=b'{"reply":"0.1.100"}')
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
         result = await hub.send_command(0, 1, CMD_UP)
-        assert result == "é!"
+        assert result == '{"reply":"0.1.100"}'
         mock_writer.write.assert_called_once()
         mock_writer.close.assert_called_once()
-        mock_reader.readexactly.assert_called_once_with(HUB_REPLY_SIZE)
+        mock_reader.readuntil.assert_called_once_with(b"}")
 
 
 @pytest.mark.asyncio
@@ -58,7 +57,7 @@ async def test_hub_send_command_checksum():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.readexactly = AsyncMock(return_value=b"OK")
+    mock_reader.readuntil = AsyncMock(return_value=b'{"reply":"OK"}')
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
         await hub.send_command(0x00, 0x01, 0xdd)
@@ -94,7 +93,7 @@ async def test_hub_send_command_timeout_read():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.readexactly = AsyncMock(side_effect=asyncio.TimeoutError())
+    mock_reader.readuntil = AsyncMock(side_effect=asyncio.TimeoutError())
     mock_reader.read = AsyncMock(side_effect=asyncio.TimeoutError())
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
@@ -120,7 +119,7 @@ async def test_hub_send_command_empty_response():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.readexactly = AsyncMock(side_effect=asyncio.IncompleteReadError(b"", HUB_REPLY_SIZE))
+    mock_reader.readuntil = AsyncMock(side_effect=asyncio.IncompleteReadError(b"", 0))
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
         result = await hub.send_command(0, 1, CMD_UP)
@@ -129,16 +128,16 @@ async def test_hub_send_command_empty_response():
 
 @pytest.mark.asyncio
 async def test_hub_send_command_unicode_response():
-    """Test response with unicode content."""
+    """Test response with JSON content."""
     hub = GaposaLinkItHub("192.168.1.100", 4999)
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.readexactly = AsyncMock(return_value=b"OK")
+    mock_reader.readuntil = AsyncMock(return_value=b'{"reply":"OK"}')
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
         result = await hub.send_command(0, 1, CMD_UP)
-        assert result == "OK"
+        assert result == '{"reply":"OK"}'
 
 
 @pytest.mark.asyncio
@@ -148,7 +147,7 @@ async def test_hub_concurrent_commands():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.readexactly = AsyncMock(return_value=b"OK")
+    mock_reader.readuntil = AsyncMock(return_value=b'{"reply":"OK"}')
 
     call_count = 0
 
@@ -166,7 +165,7 @@ async def test_hub_concurrent_commands():
         )
 
         assert len(results) == 2
-        assert all(r == "OK" for r in results)
+        assert all(r == '{"reply":"OK"}' for r in results)
 
 
 # ---------------------------------------------------------------------------
@@ -190,7 +189,7 @@ async def test_usb_hub_send_command_success():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.readexactly = AsyncMock(return_value=b"OK")
+    mock_reader.readuntil = AsyncMock(return_value=b'{"reply":"OK"}')
 
     mock_serial_asyncio = AsyncMock()
     mock_serial_asyncio.open_serial_connection = AsyncMock(
@@ -202,10 +201,7 @@ async def test_usb_hub_send_command_success():
 
     try:
         result = await hub.send_command(0, 1, CMD_UP)
-        assert result == "OK"
-        mock_writer.write.assert_called_once()
-        mock_writer.close.assert_called_once()
-        mock_reader.readexactly.assert_called_once_with(HUB_REPLY_SIZE)
+        assert result == '{"reply":"OK"}'
         mock_serial_asyncio.open_serial_connection.assert_called_once_with(
             url="/dev/ttyUSB0",
             baudrate=DEFAULT_BAUD_RATE,
@@ -218,24 +214,19 @@ async def test_usb_hub_send_command_success():
 
 
 @pytest.mark.asyncio
-async def test_hub_send_command_timeout_logs_partial_reply(caplog):
-    """When timeout happens, any late partial bytes are logged and returned."""
+async def test_hub_send_command_timeout_logs_warning(caplog):
+    """When readuntil times out, a warning is logged and None is returned."""
     hub = GaposaLinkItHub("192.168.1.100", 4999)
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.readexactly = AsyncMock(side_effect=asyncio.TimeoutError())
-    mock_reader.read = AsyncMock(side_effect=[b"#6", asyncio.TimeoutError()])
+    mock_reader.readuntil = AsyncMock(side_effect=asyncio.TimeoutError())
 
     with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
         result = await hub.send_command(0, 1, CMD_UP)
-        assert result == "#6"
-        assert "partial reply" in caplog.text
-        mock_reader.readexactly.assert_called_once_with(HUB_REPLY_SIZE)
-        assert [call.args for call in mock_reader.read.await_args_list] == [
-            (HUB_REPLY_SIZE,),
-            (HUB_REPLY_SIZE - len(b"#6"),),
-        ]
+        assert result is None
+        assert "Timed out waiting for reply" in caplog.text
+        mock_reader.readuntil.assert_called_once_with(b"}")
 
 
 @pytest.mark.asyncio
@@ -245,7 +236,7 @@ async def test_usb_hub_send_command_checksum():
 
     mock_reader = AsyncMock()
     mock_writer = AsyncMock()
-    mock_reader.readexactly = AsyncMock(return_value=b"OK")
+    mock_reader.readuntil = AsyncMock(return_value=b'{"reply":"OK"}')
 
     mock_serial_asyncio = AsyncMock()
     mock_serial_asyncio.open_serial_connection = AsyncMock(

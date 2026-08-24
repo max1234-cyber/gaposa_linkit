@@ -241,8 +241,7 @@ class GaposaCover(CoverEntity):
         self._attr_is_closing = self._motion_state == MOTION_CLOSING
 
     def _store_reply(self, reply: str | None) -> None:
-        if reply:
-            self._attr_extra_state_attributes = {"last_hub_reply": reply}
+        self._attr_extra_state_attributes = {"last_hub_reply": reply}
 
     async def _start_motion(
         self,

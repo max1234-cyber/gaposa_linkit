@@ -22,7 +22,7 @@ from .const import get_config_update_signal
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = ["cover", "number", "switch"]
-HUB_REPLY_SIZE = 3
+HUB_REPLY_TIMEOUT = 5.0
 
 
 def create_hub(data: Mapping[str, Any]) -> "GaposaLinkItHub":
@@ -109,62 +109,32 @@ class GaposaLinkItHub(ABC):
     async def send_command(self, bank: int, channel: int, command: int) -> str | None:
         """Send a command to the hub and return the reply (if any)."""
 
-    async def _read_available_bytes(
-        self, reader: asyncio.StreamReader, *, max_reads: int = 5
-    ) -> bytes:
-        """Read immediately available bytes without blocking for long."""
-        chunks: list[bytes] = []
-        total_read = 0
-        for _ in range(max_reads):
-            remaining = HUB_REPLY_SIZE - total_read
-            if remaining <= 0:
-                break
-            try:
-                chunk = await asyncio.wait_for(reader.read(remaining), timeout=0.01)
-            except asyncio.TimeoutError:
-                break
-            if not chunk:
-                break
-            chunks.append(chunk)
-            total_read += len(chunk)
-        return b"".join(chunks)
-
     async def _read_reply(self, reader: asyncio.StreamReader, *, source: str) -> str | None:
-        """Read the reply and log partial bytes when the initial read times out."""
+        """Read a JSON reply terminated by '}' and return the 'reply' field value."""
         try:
-            data = await asyncio.wait_for(reader.readexactly(HUB_REPLY_SIZE), timeout=3.0)
+            data = await asyncio.wait_for(reader.readuntil(b"}"), timeout=HUB_REPLY_TIMEOUT)
         except asyncio.TimeoutError:
-            partial_data = await self._read_available_bytes(reader)
-            if partial_data:
-                partial_reply = partial_data.decode("utf-8", errors="ignore").strip()
-                _LOGGER.warning(
-                    "Timed out waiting for reply from %s; partial reply (%s bytes): hex=%s, decoded=%r",
-                    source,
-                    len(partial_data),
-                    partial_data.hex(),
-                    partial_reply,
-                )
-                return partial_reply
-            _LOGGER.warning("Timed out waiting for reply from %s (no response within 3s).", source)
+            _LOGGER.warning(
+                "Timed out waiting for reply from %s (no response within %.0fs).",
+                source,
+                HUB_REPLY_TIMEOUT,
+            )
             return None
         except asyncio.IncompleteReadError as err:
             if err.partial:
-                partial_reply = err.partial.decode("utf-8", errors="ignore").strip()
                 _LOGGER.warning(
-                    "%s closed the connection with a partial reply (%s/%s bytes): hex=%s, decoded=%r",
+                    "%s closed the connection with a partial reply: hex=%s, decoded=%r",
                     source,
-                    len(err.partial),
-                    HUB_REPLY_SIZE,
                     err.partial.hex(),
-                    partial_reply,
+                    err.partial.decode("ascii", errors="replace"),
                 )
-                return partial_reply
-            _LOGGER.warning("%s closed the connection without returning a reply.", source)
+            else:
+                _LOGGER.warning("%s closed the connection without returning a reply.", source)
             return None
 
-        reply_str = data.decode("utf-8", errors="ignore").strip()
-        _LOGGER.info("Received reply from Gaposa hub: %s", reply_str)
-        return reply_str
+        raw = data.decode("ascii", errors="replace").strip()
+        _LOGGER.info("Received reply from Gaposa hub (%s): %s", source, raw)
+        return raw
 
 
 # ---------------------------------------------------------------------------
