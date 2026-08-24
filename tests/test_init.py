@@ -10,8 +10,8 @@ from homeassistant.core import HomeAssistant
 
 from custom_components.gaposa_linkit.const import CONF_CHANNELS
 from custom_components.gaposa_linkit.const import CONF_ENABLE_SET_POSITION
-from custom_components.gaposa_linkit.const import CONF_TRAVEL_TIMES
 from custom_components.gaposa_linkit.const import CONF_TIMEOUT
+from custom_components.gaposa_linkit.const import CONF_TRAVEL_TIMES
 from custom_components.gaposa_linkit.const import DEFAULT_TIMEOUT
 from custom_components.gaposa_linkit.const import DOMAIN
 
