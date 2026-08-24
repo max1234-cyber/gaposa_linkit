@@ -110,7 +110,7 @@ class GaposaLinkItHub(ABC):
         """Send a command to the hub and return the reply (if any)."""
 
     async def _read_reply(self, reader: asyncio.StreamReader, *, source: str) -> str | None:
-        """Read a JSON reply terminated by '}' and return the 'reply' field value."""
+        """Read a JSON reply terminated by '}' and return the full raw response string."""
         try:
             data = await asyncio.wait_for(reader.readuntil(b"}"), timeout=HUB_REPLY_TIMEOUT)
         except asyncio.TimeoutError:
