@@ -1,6 +1,7 @@
 # Gaposa LinkIt Hub
 
-[![hacs-custom](https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge)](https://hacs.xyz/docs/faq/custom_repositories)
+<a href="https://github.com/kristofferR/ha-adjustable-bed/actions/workflows/validate.yml"><img src="https://img.shields.io/github/actions/workflow/status/max1234-cyber/gaposa_linkit/validate.yml?label=validation" alt="Validation"></a>
+  <a href="https://github.com/hacs/integration"><img src="https://img.shields.io/badge/HACS-Default-blue.svg" alt="HACS"></a>
 
 An unofficial Home Assistant integration for the **Gaposa LinkIt Hub** that enables local control of motorized roller shades via serial communication. Connect over your local network using an IP-to-Serial adapter, or directly via a USB-to-Serial adapter. Control your shades directly without [...]
 
@@ -39,11 +40,8 @@ This integration is available as a **custom repository** in HACS:
 
 1. Open HACS in Home Assistant
 2. Go to **Integrations**
-3. Click the three-dot menu (⋮) and select **Custom repositories**
-4. Paste this URL: `https://github.com/max1234-cyber/gaposa_linkit`
-5. Select **Integration** as the category
-6. Search for "Gaposa LinkIt Hub" and install
-7. Restart Home Assistant
+3. Search for "Gaposa LinkIt Hub" and install
+4. Restart Home Assistant
 
 ### Manual Installation
 
