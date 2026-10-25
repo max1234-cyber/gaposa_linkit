@@ -39,9 +39,8 @@ This integration requires:
 This integration is available as a **custom repository** in HACS:
 
 1. Open HACS in Home Assistant
-2. Go to **Integrations**
-3. Search for "Gaposa LinkIt Hub" and install
-4. Restart Home Assistant
+2. Search for "Gaposa LinkIt Hub" and install
+3. Restart Home Assistant
 
 ### Manual Installation
 
